@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/petergtz/alexa-wikipedia"
-
 	"go.uber.org/zap"
 
+	wiki "github.com/petergtz/alexa-wikipedia"
 	"github.com/petergtz/alexa-wikipedia/mediawiki"
 )
 
@@ -62,7 +61,9 @@ func (h *Handler) handle(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	output, e := json.Marshal(h.processRequest(&alexaRequest))
+	response := h.processRequest(&alexaRequest)
+	log.Infow("Response", "response", response)
+	output, e := json.Marshal(response)
 	if e != nil {
 		log.Errorw("Error while marshalling response", "error", e)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -86,164 +87,124 @@ func (h *Handler) processRequest(requestEnv *RequestEnvelope) *ResponseEnvelope 
 		return internalError()
 	}
 
-	wiki := &mediawiki.MediaWiki{}
-
-	log.Infow("Request", "Type", requestEnv.Request.Type, "Intent", requestEnv.Request.Intent,
-		"SessionAttributes", requestEnv.Session.Attributes)
+	log.Infow("Request", "request", requestEnv.Request, "SessionAttributes", requestEnv.Session.Attributes)
 	switch requestEnv.Request.Type {
 
 	case "LaunchRequest":
 		return &ResponseEnvelope{Version: "1.0",
 			Response: &Response{
-				OutputSpeech: plainText("Du befindest Dich jetzt bei Wikipedia. " + helpText),
-			},
-			SessionAttributes: map[string]interface{}{
-				"last_question": "none",
+				OutputSpeech: plainText("Du befindest Dich jetzt in Deinem Tagebuch. Moechtest Du einen neuen Eintrag erstellen oder vorhandene Eintraege vorlesen?"),
 			},
 		}
 
 	case "IntentRequest":
 		intent := requestEnv.Request.Intent
 		switch intent.Name {
-		case "DefineIntent":
-			page, e := wiki.GetPage(intent.Slots["word"].Value)
-			if e != nil {
-				if e.Error() == "Page not found on Wikipedia" {
+		case "NewEntryIntent":
+
+			switch requestEnv.Request.DialogState {
+			case "STARTED":
+				// intent.Slots["date"] = IntentSlot{
+				// 	Name:  "date",
+				// 	Value: time.Now().Format("11.01.2018"),
+				// }
+				return &ResponseEnvelope{Version: "1.0",
+					Response: &Response{
+						Directives: []interface{}{
+							DialogDirective{
+								Type:          "Dialog.Delegate",
+								UpdatedIntent: &intent,
+							},
+						},
+					},
+				}
+			case "IN_PROGRESS":
+				// if intent.Slots["correct"].Value == "" {
+				return &ResponseEnvelope{Version: "1.0",
+					Response: &Response{
+						Directives: []interface{}{
+							DialogDirective{
+								Type:          "Dialog.Delegate",
+								UpdatedIntent: &intent,
+							},
+						},
+					},
+				}
+				// }
+				// switch intent.Slots["correct"].Value {
+				// case "datum":
+				// 	delete(intent.Slots, "date")
+				// 	delete(intent.Slots, "correct")
+				// 	intent.ConfirmationStatus = "NONE"
+				// 	return &ResponseEnvelope{Version: "1.0",
+				// 		Response: &Response{
+				// 			Directives: []interface{}{
+				// 				DialogDirective{
+				// 					Type:          "Dialog.Delegate",
+				// 					UpdatedIntent: &intent,
+				// 				},
+				// 			},
+				// 		},
+				// 	}
+				// case "text":
+				// 	delete(intent.Slots, "text")
+				// 	delete(intent.Slots, "correct")
+				// 	intent.ConfirmationStatus = "NONE"
+				// 	return &ResponseEnvelope{Version: "1.0",
+				// 		Response: &Response{
+				// 			Directives: []interface{}{
+				// 				DialogDirective{
+				// 					Type:          "Dialog.Delegate",
+				// 					UpdatedIntent: &intent,
+				// 				},
+				// 			},
+				// 		},
+				// 	}
+				// default:
+				// 	panic("TODO")
+				// }
+			case "COMPLETED":
+				switch intent.ConfirmationStatus {
+				case "NONE":
 					return &ResponseEnvelope{Version: "1.0",
 						Response: &Response{
-							OutputSpeech: plainText("Diesen Begriff konnte ich bei Wikipedia leider nicht finden. Versuche es doch mit einem anderen Begriff."),
+							OutputSpeech: plainText("Alles klar. Ich habe folgenden Eintrag für das Datum " + intent.Slots["date"].Value + ": " +
+								"\"" + intent.Slots["text"].Value + "\". Soll ich ihn so speichern?"),
+							Directives: []interface{}{
+								DialogDirective{
+									Type:          "Dialog.ConfirmIntent",
+									UpdatedIntent: &intent,
+								},
+							},
 						},
 					}
+				case "CONFIRMED":
+					return &ResponseEnvelope{Version: "1.0",
+						Response: &Response{OutputSpeech: plainText("Okay. Gespeichert.")},
+					}
+
+				case "DENIED":
+					return &ResponseEnvelope{Version: "1.0",
+						Response: &Response{OutputSpeech: plainText("Okay. Wurde verworfen.")},
+					}
+					// intent.ConfirmationStatus = "NONE"
+					// return &ResponseEnvelope{Version: "1.0",
+					// 	Response: &Response{
+					// 		OutputSpeech: plainText("Okay. Was möchtest Du ändern?"),
+					// 		Directives: []interface{}{
+					// 			DialogDirective{
+					// 				Type:          "Dialog.ElicitSlot",
+					// 				SlotToElicit:  "correct",
+					// 				UpdatedIntent: &intent,
+					// 			},
+					// 		},
+					// 	},
+					// }
+				default:
+					return internalError()
 				}
-				log.Errorw("Could not get Wikipedia page", "error", e)
+			default:
 				return internalError()
-			}
-			return &ResponseEnvelope{Version: "1.0",
-				Response: &Response{
-					OutputSpeech: plainText(page.Body +
-						" Zur weiteren Navigation kannst Du jederzeit zum Inhaltsverzeichnis springen" +
-						" indem Du \"Inhaltsverzeichnis\" oder \"nächster Abschnitt\" sagst. " +
-						"Soll ich zunächst einfach weiterlesen?"),
-				},
-				SessionAttributes: map[string]interface{}{
-					"word":          intent.Slots["word"].Value,
-					"position":      0,
-					"last_question": "should_continue",
-				},
-			}
-		case "AMAZON.YesIntent", "AMAZON.ResumeIntent":
-			if lastQuestionIn(requestEnv.Session) != "should_continue" {
-				return &ResponseEnvelope{Version: "1.0",
-					Response:          &Response{OutputSpeech: plainText("Wie meinen?")},
-					SessionAttributes: requestEnv.Session.Attributes,
-				}
-			}
-			page, resp := h.pageFromSession(requestEnv.Session)
-			if resp != nil {
-				return resp
-			}
-			newPosition := int(requestEnv.Session.Attributes["position"].(float64)) + 1
-			return &ResponseEnvelope{Version: "1.0",
-				Response: &Response{
-					OutputSpeech: plainText(page.TextForPosition(newPosition) +
-						" Soll ich noch weiterlesen?"),
-				},
-				SessionAttributes: map[string]interface{}{
-					"word":          requestEnv.Session.Attributes["word"],
-					"position":      newPosition,
-					"last_question": "should_continue",
-				},
-			}
-		case "AMAZON.RepeatIntent":
-			page, resp := h.pageFromSession(requestEnv.Session)
-			if resp != nil {
-				return resp
-			}
-			newPosition := int(requestEnv.Session.Attributes["position"].(float64))
-			return &ResponseEnvelope{Version: "1.0",
-				Response: &Response{
-					OutputSpeech: plainText(page.TextForPosition(newPosition) +
-						" Soll ich noch weiterlesen?"),
-				},
-				SessionAttributes: map[string]interface{}{
-					"word":          requestEnv.Session.Attributes["word"],
-					"position":      newPosition,
-					"last_question": "should_continue",
-				},
-			}
-		case "AMAZON.NextIntent":
-			page, resp := h.pageFromSession(requestEnv.Session)
-			if resp != nil {
-				return resp
-			}
-			newPosition := int(requestEnv.Session.Attributes["position"].(float64)) + 1
-			return &ResponseEnvelope{Version: "1.0",
-				Response: &Response{
-					OutputSpeech: plainText(page.TextForPosition(newPosition) +
-						" Soll ich noch weiterlesen?"),
-				},
-				SessionAttributes: map[string]interface{}{
-					"word":          requestEnv.Session.Attributes["word"],
-					"position":      newPosition,
-					"last_question": "should_continue",
-				},
-			}
-		case "AMAZON.NoIntent":
-			if lastQuestionIn(requestEnv.Session) != "should_continue" {
-				return &ResponseEnvelope{Version: "1.0",
-					Response:          &Response{OutputSpeech: plainText("Wie meinen?")},
-					SessionAttributes: requestEnv.Session.Attributes,
-				}
-			}
-			delete(requestEnv.Session.Attributes, "last_question")
-			return &ResponseEnvelope{Version: "1.0",
-				Response:          &Response{OutputSpeech: plainText("Nein? Okay.")},
-				SessionAttributes: requestEnv.Session.Attributes,
-			}
-		case "AMAZON.PauseIntent":
-			delete(requestEnv.Session.Attributes, "last_question")
-			return &ResponseEnvelope{Version: "1.0",
-				Response:          &Response{OutputSpeech: plainText(" ")},
-				SessionAttributes: requestEnv.Session.Attributes,
-			}
-		case "TocIntent":
-			page, resp := h.pageFromSession(requestEnv.Session)
-			if resp != nil {
-				return resp
-			}
-			requestEnv.Session.Attributes["last_question"] = "jump_where"
-			return &ResponseEnvelope{Version: "1.0",
-				Response: &Response{
-					OutputSpeech: plainText(page.Toc() + " Zu welchem Abschnitt möchtest Du springen?"),
-				},
-				SessionAttributes: requestEnv.Session.Attributes,
-			}
-		case "GoToSectionIntent":
-			page, resp := h.pageFromSession(requestEnv.Session)
-			if resp != nil {
-				return resp
-			}
-			sectionTitleOrNumber := intent.Slots["section_title_or_number"].Value
-			s, position := page.TextAndPositionFromSectionNumber(sectionTitleOrNumber)
-			if s == "" {
-				s, position = page.TextAndPositionFromSectionName(sectionTitleOrNumber)
-			}
-			lastQuestion := ""
-			if s != "" {
-				s += "Soll ich noch weiterlesen?"
-				lastQuestion = "should_continue"
-			} else {
-				s = "Ich konnte den angegebenen Abschnitt \"" + sectionTitleOrNumber + "\" nicht finden."
-				position = int(requestEnv.Session.Attributes["position"].(float64))
-				lastQuestion = "none"
-			}
-			return &ResponseEnvelope{Version: "1.0",
-				Response: &Response{OutputSpeech: plainText(s)},
-				SessionAttributes: map[string]interface{}{
-					"word":          requestEnv.Session.Attributes["word"],
-					"position":      position,
-					"last_question": lastQuestion,
-				},
 			}
 		case "AMAZON.HelpIntent":
 			return &ResponseEnvelope{Version: "1.0",
@@ -263,7 +224,7 @@ func (h *Handler) processRequest(requestEnv *RequestEnvelope) *ResponseEnvelope 
 		return &ResponseEnvelope{Version: "1.0"}
 
 	default:
-		return &ResponseEnvelope{Version: "1.0"}
+		return internalError()
 	}
 }
 
