@@ -1,4 +1,4 @@
-package: github.com/petergtz/alexa-wikipedia
+package: github.com/petergtz/alexa-journal
 import:
 - package: github.com/k3a/html2text
 - package: github.com/jaytaylor/html2text
@@ -9,3 +9,10 @@ import:
   subpackages:
   - ginkgo
 - package: github.com/onsi/gomega
+- package: google.golang.org/api
+  subpackages:
+  - drive/v3
+- package: golang.org/x/oauth2
+  subpackages:
+  - google
+- package: go.uber.org/zap
