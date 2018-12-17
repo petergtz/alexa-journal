@@ -1,9 +1,5 @@
 package: github.com/petergtz/alexa-journal
 import:
-- package: github.com/k3a/html2text
-- package: github.com/jaytaylor/html2text
-- package: github.com/pkg/math
-- package: github.com/ericdaugherty/alexa-skills-kit-golang
 - package: github.com/pkg/errors
 - package: github.com/onsi/ginkgo
   subpackages:
@@ -16,3 +12,4 @@ import:
   subpackages:
   - google
 - package: go.uber.org/zap
+  version: v1.7.1

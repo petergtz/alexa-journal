@@ -1,11 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 	"time"
+
+	"github.com/rickb777/date"
 
 	"github.com/petergtz/alexa-journal/drive"
 	"github.com/petergtz/go-alexa"
@@ -50,24 +51,59 @@ type JournalSkill struct {
 
 type Journal interface {
 	AddEntry(date time.Time, text string) error
+	GetEntry(date time.Time) (string, error)
 }
 
-const helpText = "Um einen Artikel vorgelesen zu bekommen, " +
-	"sage z.B. \"Suche nach Käsekuchen.\" oder \"Was ist Käsekuchen?\". " +
-	"Du kannst jederzeit zum Inhaltsverzeichnis springen, indem Du \"Inhaltsverzeichnis\" sagst. " +
-	"Oder sage \"Springe zu Abschnitt 3.2\", um direkt zu diesem Abschnitt zu springen."
+const helpText = "Dieser Hilfetext fehlt leider noch"
 
-const quickHelpText = "Suche zunächst nach einem Begriff. " +
-	"Sage z.B. \"Suche nach Käsekuchen.\" oder \"Was ist Käsekuchen?\"."
+// var months = map[string]string{
+// 	"january":   "01",
+// 	"february":  "02",
+// 	"march":     "03",
+// 	"april":     "04",
+// 	"may":       "05",
+// 	"june":      "06",
+// 	"july":      "07",
+// 	"august":    "08",
+// 	"september": "09",
+// 	"october":   "10",
+// 	"november":  "11",
+// 	"december":  "12",
+// }
+var months = map[string]string{
+	"januar":    "01",
+	"februar":   "02",
+	"maerz":     "03",
+	"april":     "04",
+	"mai":       "05",
+	"juni":      "06",
+	"juli":      "07",
+	"august":    "08",
+	"september": "09",
+	"oktober":   "10",
+	"november":  "11",
+	"dezember":  "12",
+}
 
 func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.ResponseEnvelope {
 	log.Infow("Request", "request", requestEnv.Request, "SessionAttributes", requestEnv.Session.Attributes)
+
+	if requestEnv.Session.User.AccessToken == "" {
+		return &alexa.ResponseEnvelope{Version: "1.0",
+			Response: &alexa.Response{
+				OutputSpeech:     plainText("Bevor Du Dein Tagebuch öffnen kannst, verbinde bitte zuerst Alexa mit Deinem Google Account in der Alexa App."),
+				Card:             &alexa.Card{Type: "LinkAccount"},
+				ShouldSessionEnd: true,
+			},
+		}
+	}
+
 	switch requestEnv.Request.Type {
 
 	case "LaunchRequest":
 		return &alexa.ResponseEnvelope{Version: "1.0",
 			Response: &alexa.Response{
-				OutputSpeech: plainText("Du befindest Dich jetzt in Deinem Tagebuch. Moechtest Du einen neuen Eintrag erstellen oder vorhandene Eintraege vorlesen?"),
+				OutputSpeech: plainText("Dein Tagebuch ist nun geöffnet. Möchtest Du einen neuen Eintrag erstellen oder vorhandene Einträge vorlesen?"),
 			},
 		}
 
@@ -78,65 +114,9 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 
 			switch requestEnv.Request.DialogState {
 			case "STARTED":
-				// intent.Slots["date"] = IntentSlot{
-				// 	Name:  "date",
-				// 	Value: time.Now().Format("11.01.2018"),
-				// }
-				return &alexa.ResponseEnvelope{Version: "1.0",
-					Response: &alexa.Response{
-						Directives: []interface{}{
-							alexa.DialogDirective{
-								Type:          "Dialog.Delegate",
-								UpdatedIntent: &intent,
-							},
-						},
-					},
-				}
+				return pureDelegate(&intent)
 			case "IN_PROGRESS":
-				// if intent.Slots["correct"].Value == "" {
-				return &alexa.ResponseEnvelope{Version: "1.0",
-					Response: &alexa.Response{
-						Directives: []interface{}{
-							alexa.DialogDirective{
-								Type:          "Dialog.Delegate",
-								UpdatedIntent: &intent,
-							},
-						},
-					},
-				}
-				// }
-				// switch intent.Slots["correct"].Value {
-				// case "datum":
-				// 	delete(intent.Slots, "date")
-				// 	delete(intent.Slots, "correct")
-				// 	intent.ConfirmationStatus = "NONE"
-				// 	return &alexa.ResponseEnvelope{Version: "1.0",
-				// 		Response: &Response{
-				// 			Directives: []interface{}{
-				// 				DialogDirective{
-				// 					Type:          "Dialog.Delegate",
-				// 					UpdatedIntent: &intent,
-				// 				},
-				// 			},
-				// 		},
-				// 	}
-				// case "text":
-				// 	delete(intent.Slots, "text")
-				// 	delete(intent.Slots, "correct")
-				// 	intent.ConfirmationStatus = "NONE"
-				// 	return &alexa.ResponseEnvelope{Version: "1.0",
-				// 		Response: &Response{
-				// 			Directives: []interface{}{
-				// 				DialogDirective{
-				// 					Type:          "Dialog.Delegate",
-				// 					UpdatedIntent: &intent,
-				// 				},
-				// 			},
-				// 		},
-				// 	}
-				// default:
-				// 	panic("TODO")
-				// }
+				return pureDelegate(&intent)
 			case "COMPLETED":
 				switch intent.ConfirmationStatus {
 				case "NONE":
@@ -153,75 +133,66 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 						},
 					}
 				case "CONFIRMED":
-					dateParts := strings.Split(intent.Slots["date"].Value, "-")
-					year, _ := strconv.Atoi(dateParts[0])
-					month, _ := strconv.Atoi(dateParts[1])
-					day, _ := strconv.Atoi(dateParts[2])
-					date := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local)
-					// date, e := time.Parse("2018-03-24", intent.Slots["date"].Value)
-					// if e != nil {
-					// 	log.Errorw("Could not parse date", "date", intent.Slots["date"].Value, "error", e)
-					// 	return &alexa.ResponseEnvelope{Version: "1.0",
-					// 		Response: &alexa.Response{
-					// 			OutputSpeech:     plainText("Es ist ein interner Fehler aufgetreten."),
-					// 			ShouldSessionEnd: true,
-					// 		},
-					// 	}
-
-					// }
-					journal, e := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+					date, e := date.AutoParse(intent.Slots["date"].Value)
 					if e != nil {
-						log.Errorw("Could not get Journal", "token", requestEnv.Session.User.AccessToken, "error", e)
-						return &alexa.ResponseEnvelope{Version: "1.0",
-							Response: &alexa.Response{
-								OutputSpeech:     plainText("Es ist ein interner Fehler aufgetreten."),
-								ShouldSessionEnd: true,
-							},
-						}
+						log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, e)
+						return internalError()
 					}
+					journal := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
 					e = journal.AddEntry(date, intent.Slots["text"].Value)
 					if e != nil {
 						log.Errorw("Could not add entry", "date", date, "text", intent.Slots["text"].Value, "error", e)
-						return &alexa.ResponseEnvelope{Version: "1.0",
-							Response: &alexa.Response{
-								OutputSpeech:     plainText("Es ist ein interner Fehler aufgetreten."),
-								ShouldSessionEnd: true,
-							},
-						}
+						return internalError()
 					}
 
 					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response: &alexa.Response{OutputSpeech: plainText("Okay. Gespeichert.")},
+						Response: &alexa.Response{
+							OutputSpeech:     plainText("Okay. Gespeichert."),
+							ShouldSessionEnd: true,
+						},
 					}
 
 				case "DENIED":
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{OutputSpeech: plainText("Okay. Wurde verworfen.")},
 					}
-					// intent.ConfirmationStatus = "NONE"
-					// return &alexa.ResponseEnvelope{Version: "1.0",
-					// 	Response: &Response{
-					// 		OutputSpeech: plainText("Okay. Was möchtest Du ändern?"),
-					// 		Directives: []interface{}{
-					// 			DialogDirective{
-					// 				Type:          "Dialog.ElicitSlot",
-					// 				SlotToElicit:  "correct",
-					// 				UpdatedIntent: &intent,
-					// 			},
-					// 		},
-					// 	},
-					// }
 				default:
 					return internalError()
 				}
 			default:
 				return internalError()
 			}
+		case "ReadExistingEntriesIntent":
+			switch requestEnv.Request.DialogState {
+			case "STARTED", "IN_PROGRESS":
+				return pureDelegate(&intent)
+			case "COMPLETED":
+				date, e := date.AutoParse(intent.Slots["year"].Value + "/" + months[intent.Slots["month"].Value] + "/" + fmt.Sprintf("%02v", intent.Slots["day"].Value))
+				// date, e := date.AutoParse(intent.Slots["date"].Value)
+				if e != nil {
+					log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, e)
+					return internalError()
+				}
+
+				journal := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+				text, e := journal.GetEntry(date)
+				if e != nil {
+					log.Errorw("Could not get entry", "date", date, e)
+					return internalError()
+				}
+
+				return &alexa.ResponseEnvelope{Version: "1.0",
+					Response: &alexa.Response{
+						OutputSpeech:     plainText("Hier ist der Eintrag vom " + intent.Slots["day"].Value + ". " + intent.Slots["month"].Value + " " + intent.Slots["year"].Value + ": " + text),
+						ShouldSessionEnd: true,
+					},
+				}
+			default:
+				return internalError()
+			}
 		case "AMAZON.HelpIntent":
 			return &alexa.ResponseEnvelope{Version: "1.0",
-				Response: &alexa.Response{
-					OutputSpeech: plainText(helpText),
-				},
+				Response: &alexa.Response{OutputSpeech: plainText(helpText)},
 			}
 		case "AMAZON.CancelIntent", "AMAZON.StopIntent":
 			return &alexa.ResponseEnvelope{Version: "1.0",
@@ -239,22 +210,28 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 	}
 }
 
-func quickHelp(sessionAttributes map[string]interface{}) *alexa.ResponseEnvelope {
-	return &alexa.ResponseEnvelope{Version: "1.0",
-		Response:          &alexa.Response{OutputSpeech: plainText(quickHelpText)},
-		SessionAttributes: sessionAttributes,
-	}
-}
-
 func plainText(text string) *alexa.OutputSpeech {
 	return &alexa.OutputSpeech{Type: "PlainText", Text: text}
+}
+
+func pureDelegate(intent *alexa.Intent) *alexa.ResponseEnvelope {
+	return &alexa.ResponseEnvelope{Version: "1.0",
+		Response: &alexa.Response{
+			Directives: []interface{}{
+				alexa.DialogDirective{
+					Type:          "Dialog.Delegate",
+					UpdatedIntent: intent,
+				},
+			},
+		},
+	}
 }
 
 func internalError() *alexa.ResponseEnvelope {
 	return &alexa.ResponseEnvelope{Version: "1.0",
 		Response: &alexa.Response{
-			OutputSpeech:     plainText("Es ist ein interner Fehler aufgetreten bei der Benutzung von Wikipedia."),
-			ShouldSessionEnd: false,
+			OutputSpeech:     plainText("Es ist ein interner Fehler aufgetreten."),
+			ShouldSessionEnd: true,
 		},
 	}
 }

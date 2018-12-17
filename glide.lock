@@ -1,18 +1,12 @@
-hash: c8e9f7087793cdc9609c33a5bf3711df3fed1b93c7e26069cdac5f9e658b26a9
-updated: 2018-03-25T22:48:28.35268+02:00
+hash: 6606ea312db6c3e684c29d356fd0141218342b345ff142eeb50b59b879bb0ac9
+updated: 2018-06-19T15:53:25.88912+02:00
 imports:
-- name: github.com/ericdaugherty/alexa-skills-kit-golang
-  version: 5669a59bb223f3afeace7a8f8d1cf4ec938daba1
 - name: github.com/golang/protobuf
-  version: 6a1fa9404c0aebf36c879bc50152edcc953910d2
+  version: 9f81198da99b79e14d70ca2c3cc1bbe44c6e69b6
   subpackages:
   - proto
-- name: github.com/jaytaylor/html2text
-  version: 190166da35878a77103b951ae035a473531c1fc2
-- name: github.com/k3a/html2text
-  version: ab70b34187c4604d303fa56569efef07cb7753e6
 - name: github.com/onsi/ginkgo
-  version: a23f924ce96d61f963fb6219b8ff069d8d768cc2
+  version: 000d317071340972710dc1da9ae3c2c016a7a560
   subpackages:
   - config
   - ginkgo
@@ -22,6 +16,7 @@ imports:
   - internal/leafnodes
   - internal/remote
   - internal/spec
+  - internal/spec_iterator
   - internal/specrunner
   - internal/suite
   - internal/testingtproxy
@@ -32,7 +27,7 @@ imports:
   - reporters/stenographer/support/go-isatty
   - types
 - name: github.com/onsi/gomega
-  version: de89e61d40b75aa971a9fc3eae7f4fefabd6e0ee
+  version: 9be84105672ba4433a3b61f1b4d7f9ff8b022293
   subpackages:
   - format
   - internal/assertion
@@ -46,19 +41,23 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: github.com/patrickmn/go-cache
-  version: a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0
+  version: 9f6ff22cfff829561052f5886ec80a2ac148b4eb
 - name: github.com/petergtz/go-alexa
   version: f2fe0b6105af830c065d1fb976443a3c1a5d4053
 - name: github.com/pkg/errors
-  version: 248dadf4e9068a0b3e79f02ed0a610d935de5302
-- name: github.com/pkg/math
-  version: f2ed9e40e245cdeec72c4b642d27ed4553f90667
+  version: 816c9085562cd7ee03e7f8188a1cfd942858cded
+- name: github.com/rickb777/date
+  version: bcf2cbc42c2e6ccb6b1569dae6896637afbab1ba
+  subpackages:
+  - period
+- name: github.com/rickb777/plural
+  version: b6a467b7a5755bc0b54db54abe5bf127967146e2
 - name: go.uber.org/atomic
-  version: 8474b86a5a6f79c443ce4b2992817ff32cf208b8
+  version: 1ea20fb1cbb1cc08cbd0d913a96dead89aa18289
 - name: go.uber.org/multierr
   version: 3c4937480c32f4c13a875a1829af76c98ca3d40a
 - name: go.uber.org/zap
-  version: e15639dab1b6ca5a651fe7ebfd8d682683b7d6a8
+  version: 35aad584952c3e7020db7b839f6b102de6271f89
   subpackages:
   - buffer
   - internal/bufferpool
@@ -66,7 +65,7 @@ imports:
   - internal/exit
   - zapcore
 - name: golang.org/x/net
-  version: 1f9224279e98554b6a6432d4dd998a739f8b2b7c
+  version: db08ff08e8622530d9ed3a0e8ac279f6d4c02196
   subpackages:
   - context
   - context/ctxhttp
@@ -74,19 +73,19 @@ imports:
   - html/atom
   - html/charset
 - name: golang.org/x/oauth2
-  version: cce311a261e6fcf29de72ca96827bdb0b7d9c9e6
+  version: 1e0a3fa8ba9a5c9eb35c271780101fdaf1b205d7
   subpackages:
   - google
   - internal
 - name: google.golang.org/api
-  version: e6586c9293b9d514c7f5d5076731ec977cff1be6
+  version: 2eea9ba0a3d94f6ab46508083e299a00bbbc65f6
   subpackages:
   - drive/v3
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
 - name: google.golang.org/appengine
-  version: a2f4131514e563cedfdb6e7d267df9ad48591e93
+  version: b1f26356af11148e710935ed1ac8a7f5702c7612
   subpackages:
   - internal
   - internal/base
@@ -97,11 +96,11 @@ imports:
   - urlfetch
 testImports:
 - name: golang.org/x/sys
-  version: d75a52659825e75fff6158388dddc6a5b04f9ba5
+  version: 6c888cc515d3ed83fc103cf1d84468aad274b0a7
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 8c34f848e18c4bd34d02db7f19a0ed1a0a8f5852
+  version: 5cec4b58c438bd98288aeb248bab2c1840713d21
   subpackages:
   - encoding
   - encoding/charmap
@@ -121,4 +120,4 @@ testImports:
   - runes
   - transform
 - name: gopkg.in/yaml.v2
-  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
+  version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
