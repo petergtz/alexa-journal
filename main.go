@@ -70,19 +70,19 @@ const helpText = "Dieser Hilfetext fehlt leider noch"
 // 	"november":  "11",
 // 	"december":  "12",
 // }
-var months = map[string]string{
-	"januar":    "01",
-	"februar":   "02",
-	"maerz":     "03",
-	"april":     "04",
-	"mai":       "05",
-	"juni":      "06",
-	"juli":      "07",
-	"august":    "08",
-	"september": "09",
-	"oktober":   "10",
-	"november":  "11",
-	"dezember":  "12",
+var months = map[string]int{
+	"januar":    1,
+	"februar":   2,
+	"maerz":     3,
+	"april":     4,
+	"mai":       5,
+	"juni":      6,
+	"juli":      7,
+	"august":    8,
+	"september": 9,
+	"oktober":   10,
+	"november":  11,
+	"dezember":  12,
 }
 
 func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.ResponseEnvelope {
@@ -162,29 +162,30 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 			default:
 				return internalError()
 			}
-		case "ReadExistingEntriesIntent":
+		case "ReadExistingEntryAbsoluteDateIntent":
 			switch requestEnv.Request.DialogState {
 			case "STARTED", "IN_PROGRESS":
 				return pureDelegate(&intent)
 			case "COMPLETED":
-				date, e := date.AutoParse(intent.Slots["year"].Value + "/" + months[intent.Slots["month"].Value] + "/" + fmt.Sprintf("%02v", intent.Slots["day"].Value))
-				// date, e := date.AutoParse(intent.Slots["date"].Value)
+				entryDate, e := date.AutoParse(intent.Slots["date"].Value)
+				if intent.Slots["year"].Value != "" {
+					entryDate, e = date.AutoParse(intent.Slots["year"].Value + intent.Slots["date"].Value[4:])
+				}
 				if e != nil {
 					log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, e)
 					return internalError()
 				}
 
 				journal := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
-				text, e := journal.GetEntry(date)
+				text, e := journal.GetEntry(entryDate)
 				if e != nil {
-					log.Errorw("Could not get entry", "date", date, e)
+					log.Errorw("Could not get entry", "date", entryDate, e)
 					return internalError()
 				}
 
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech:     plainText("Hier ist der Eintrag vom " + intent.Slots["day"].Value + ". " + intent.Slots["month"].Value + " " + intent.Slots["year"].Value + ": " + text),
-						ShouldSessionEnd: true,
+						OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v.%v.%v: %v.\nWenn Du noch weitere Einträge hören oder erstellen möchtest, kannst Du das jetzt tun.", entryDate.Day(), int(entryDate.Month()), entryDate.Year(), text)),
 					},
 				}
 			default:
