@@ -1,3 +1,6 @@
+.gitignore
+.glide
+alexa-journal
 private
 tmp
 vendor
