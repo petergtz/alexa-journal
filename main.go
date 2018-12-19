@@ -52,28 +52,8 @@ type JournalSkill struct {
 	log             *zap.SugaredLogger
 }
 
-// type Journal interface {
-// 	AddEntry(date time.Time, text string) error
-// 	GetEntry(date time.Time) (string, error)
-// 	GetEntries(date time.Time) ([]string, error)
-// }
+const helpText = "Mit diesem Skill kannst Du Tagebucheintraege erstellen oder vorlesen lassen. Sage z.B. \"Neuen Eintrag erstellen\". Oder \"Lies mir den Eintrag von gestern vor\". Oder \"Was war heute vor 20 Jahren?\". Oder \"Was war im August 1994?\"."
 
-const helpText = "Dieser Hilfetext fehlt leider noch"
-
-// var months = map[string]string{
-// 	"january":   "01",
-// 	"february":  "02",
-// 	"march":     "03",
-// 	"april":     "04",
-// 	"may":       "05",
-// 	"june":      "06",
-// 	"july":      "07",
-// 	"august":    "08",
-// 	"september": "09",
-// 	"october":   "10",
-// 	"november":  "11",
-// 	"december":  "12",
-// }
 var months = map[string]int{
 	"januar":    1,
 	"februar":   2,
@@ -109,7 +89,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 	case "LaunchRequest":
 		return &alexa.ResponseEnvelope{Version: "1.0",
 			Response: &alexa.Response{
-				OutputSpeech: plainText("Dein Tagebuch ist nun geöffnet. Möchtest Du einen neuen Eintrag erstellen oder vorhandene Einträge vorlesen?"),
+				OutputSpeech: plainText("Dein Tagebuch ist nun geöffnet. Was möchtest Du tun?"),
 			},
 		}
 
@@ -261,10 +241,20 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					log.Errorw("Could not get entry", "date", entryDate, "error", e)
 					return internalError()
 				}
-
+				if text != "" {
+					return &alexa.ResponseEnvelope{Version: "1.0",
+						Response: &alexa.Response{
+							OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v.%v.%v: %v.",
+								entryDate.Day(), int(entryDate.Month()), entryDate.Year(), text)),
+						},
+					}
+				}
+				entry, e := journal.GetClosestEntry(entryDate)
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v.%v.%v: %v.\nWenn Du noch weitere Einträge hören oder erstellen möchtest, kannst Du das jetzt tun.", entryDate.Day(), int(entryDate.Month()), entryDate.Year(), text)),
+						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v.%v.%v keinen Eintrag gefunden. "+
+							"Stattdessen habe ich folgenden Eintrag fuer den %v gefunden: %v.",
+							entryDate.Day(), int(entryDate.Month()), entryDate.Year(), entry.EntryDate, entry.EntryText)),
 					},
 				}
 			default:
@@ -299,9 +289,20 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					return internalError()
 				}
 
+				if text != "" {
+					return &alexa.ResponseEnvelope{Version: "1.0",
+						Response: &alexa.Response{
+							OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v.%v.%v: %v.",
+								entryDate.Day(), int(entryDate.Month()), entryDate.Year(), text)),
+						},
+					}
+				}
+				entry, e := journal.GetClosestEntry(entryDate)
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v.%v.%v: %v.\nWenn Du noch weitere Einträge hören oder erstellen möchtest, kannst Du das jetzt tun.", entryDate.Day(), int(entryDate.Month()), entryDate.Year(), text)),
+						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v.%v.%v keinen Eintrag gefunden. "+
+							"Stattdessen habe ich folgenden Eintrag fuer den %v gefunden: %v.",
+							entryDate.Day(), int(entryDate.Month()), entryDate.Year(), entry.EntryDate, entry.EntryText)),
 					},
 				}
 			default:

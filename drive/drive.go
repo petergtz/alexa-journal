@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/math"
+
 	"github.com/pkg/errors"
 	"github.com/rickb777/date"
 	"golang.org/x/oauth2"
@@ -71,7 +73,46 @@ func (j *Journal) GetEntry(entryDate date.Date) (string, error) {
 			return parts[2], nil
 		}
 	}
-	return "Keinen Eintrag gefunden", nil
+	return "", nil
+}
+
+func (j *Journal) GetClosestEntry(entryDate date.Date) (Entry, error) {
+	var closestPositiveEntry, closestNegativeEntry *Entry
+
+	closestPositiveDiff := 1 << 30
+	closestNegativeDiff := -(1 << 30)
+	for _, line := range strings.Split((j.content), "\n") {
+		parts := strings.Split(line, "\t")
+		if len(parts) != 3 {
+			continue
+		}
+		if parts[1] == "" {
+			continue
+		}
+		d, e := date.AutoParse(parts[1])
+		if e != nil {
+			continue
+		}
+		diff := entryDate.Sub(d)
+		if diff == 0 {
+			return Entry{parts[0], parts[1], parts[2]}, nil
+		}
+		if diff > 0 {
+			closestNegativeDiff = math.Min(int(diff), closestNegativeDiff)
+			closestNegativeEntry = &Entry{parts[0], parts[1], parts[2]}
+		}
+		if diff < 0 {
+			closestPositiveDiff = math.Max(int(diff), closestPositiveDiff)
+			closestPositiveEntry = &Entry{parts[0], parts[1], parts[2]}
+		}
+	}
+	if closestNegativeEntry != nil {
+		return *closestNegativeEntry, nil
+	}
+	if closestPositiveEntry != nil {
+		return *closestPositiveEntry, nil
+	}
+	return Entry{}, nil
 }
 
 type Entry struct {
