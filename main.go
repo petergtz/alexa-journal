@@ -211,7 +211,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					}
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
-							OutputSpeech: plainText(fmt.Sprintf("Hier sind die Einträge für den Zeitraum " + strings.Replace(intent.Slots["date"].Value[:7], "-", "-", -1) + "-00" + ": " +
+							OutputSpeech: plainText(fmt.Sprintf("Hier sind die Einträge für den Zeitraum " + strings.Replace(intent.Slots["date"].Value[:7], "-", "/", -1) + ": " +
 								strings.Join(tuples, ". "))),
 						},
 					}
