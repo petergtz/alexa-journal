@@ -9,5 +9,5 @@ import (
 
 func TestDrive(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Drive Suite")
+	RunSpecs(t, "Drive Test Suite")
 }

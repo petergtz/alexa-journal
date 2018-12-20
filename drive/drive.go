@@ -6,18 +6,29 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/math"
-
 	"github.com/pkg/errors"
 	"github.com/rickb777/date"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/drive/v3"
 )
 
+type FileService interface {
+	Update(content string) error
+}
+
+type DriveFileService struct {
+	files  *drive.FilesService
+	fileID string
+}
+
+func (dfs *DriveFileService) Update(content string) error {
+	_, e := dfs.files.Update(dfs.fileID, &drive.File{}).Media(strings.NewReader(content)).Do()
+	return e
+}
+
 type Journal struct {
-	files   *drive.FilesService
-	fileID  string
-	content string
+	Files   FileService
+	Content string
 }
 
 type JournalProvider struct {
@@ -46,16 +57,16 @@ func NewJournal(accessToken string, filename string) *Journal {
 		panic(errors.Wrap(e, "Could not get file contents"))
 	}
 
-	return &Journal{files: d.Files, fileID: fileID, content: content}
+	return &Journal{Files: &DriveFileService{files: d.Files, fileID: fileID}, Content: content}
 }
 
 func (j *Journal) AddEntry(entryDate date.Date, text string) error {
-	if j.content == "" {
-		j.content = "timestamp\tdate\ttext\n"
+	if j.Content == "" {
+		j.Content = "timestamp\tdate\ttext\n"
 	}
-	j.content += time.Now().Format("2006-01-02 15:04:05 -0700 MST") + "\t" + entryDate.String() + "\t" + text + "\n"
+	j.Content += time.Now().Format("2006-01-02 15:04:05 -0700 MST") + "\t" + entryDate.String() + "\t" + text + "\n"
 
-	_, e := j.files.Update(j.fileID, &drive.File{}).Media(strings.NewReader(j.content)).Do()
+	e := j.Files.Update(j.Content)
 	if e != nil {
 		return errors.Wrap(e, "Could not upload updated content")
 	}
@@ -64,7 +75,7 @@ func (j *Journal) AddEntry(entryDate date.Date, text string) error {
 }
 
 func (j *Journal) GetEntry(entryDate date.Date) (string, error) {
-	for _, line := range strings.Split((j.content), "\n") {
+	for _, line := range strings.Split((j.Content), "\n") {
 		parts := strings.Split(line, "\t")
 		if len(parts) != 3 {
 			continue
@@ -79,9 +90,9 @@ func (j *Journal) GetEntry(entryDate date.Date) (string, error) {
 func (j *Journal) GetClosestEntry(entryDate date.Date) (Entry, error) {
 	var closestPositiveEntry, closestNegativeEntry *Entry
 
-	closestPositiveDiff := 1 << 30
-	closestNegativeDiff := -(1 << 30)
-	for _, line := range strings.Split((j.content), "\n") {
+	closestPositiveDiff := -(1 << 30)
+	closestNegativeDiff := 1 << 30
+	for _, line := range strings.Split((j.Content), "\n") {
 		parts := strings.Split(line, "\t")
 		if len(parts) != 3 {
 			continue
@@ -94,23 +105,28 @@ func (j *Journal) GetClosestEntry(entryDate date.Date) (Entry, error) {
 			continue
 		}
 		diff := entryDate.Sub(d)
+
 		if diff == 0 {
 			return Entry{parts[0], parts[1], parts[2]}, nil
 		}
 		if diff > 0 {
-			closestNegativeDiff = math.Min(int(diff), closestNegativeDiff)
-			closestNegativeEntry = &Entry{parts[0], parts[1], parts[2]}
+			if int(diff) < closestNegativeDiff {
+				closestNegativeDiff = int(diff)
+				closestNegativeEntry = &Entry{parts[0], parts[1], parts[2]}
+			}
 		}
 		if diff < 0 {
-			closestPositiveDiff = math.Max(int(diff), closestPositiveDiff)
-			closestPositiveEntry = &Entry{parts[0], parts[1], parts[2]}
+			if int(diff) > closestPositiveDiff {
+				closestPositiveDiff = int(diff)
+				closestPositiveEntry = &Entry{parts[0], parts[1], parts[2]}
+			}
 		}
-	}
-	if closestNegativeEntry != nil {
-		return *closestNegativeEntry, nil
 	}
 	if closestPositiveEntry != nil {
 		return *closestPositiveEntry, nil
+	}
+	if closestNegativeEntry != nil {
+		return *closestNegativeEntry, nil
 	}
 	return Entry{}, nil
 }
@@ -123,7 +139,7 @@ type Entry struct {
 
 func (j *Journal) GetEntries(timeRange string) ([]Entry, error) {
 	var result []Entry
-	for _, line := range strings.Split((j.content), "\n") {
+	for _, line := range strings.Split((j.Content), "\n") {
 		parts := strings.Split(line, "\t")
 		if len(parts) != 3 {
 			continue
