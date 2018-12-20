@@ -70,7 +70,9 @@ var months = map[string]int{
 }
 
 func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.ResponseEnvelope {
-	log.Infow("Request", "request", requestEnv.Request, "SessionAttributes", requestEnv.Session.Attributes)
+	log := h.log.With("request", requestEnv.Request, "SessionAttributes", requestEnv.Session.Attributes)
+	log.Infow("Request started")
+	defer log.Infow("Request completed")
 
 	if requestEnv.Session.User.AccessToken == "" {
 		return &alexa.ResponseEnvelope{Version: "1.0",
@@ -82,8 +84,6 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 		}
 	}
 
-	journal := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
-
 	switch requestEnv.Request.Type {
 
 	case "LaunchRequest":
@@ -94,6 +94,9 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 		}
 
 	case "IntentRequest":
+		journal := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+		log.Debugw("Journal downloaded")
+
 		intent := requestEnv.Request.Intent
 		switch intent.Name {
 		case "NewEntryIntent":
