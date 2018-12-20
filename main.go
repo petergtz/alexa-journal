@@ -256,7 +256,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
 						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v.%v.%v keinen Eintrag gefunden. "+
-							"Stattdessen habe ich folgenden Eintrag fuer den %v gefunden: %v.",
+							"Der nächste Eintrag ist vom %v. Er lautet: %v.",
 							entryDate.Day(), int(entryDate.Month()), entryDate.Year(), entry.EntryDate, entry.EntryText)),
 					},
 				}
@@ -304,7 +304,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
 						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v.%v.%v keinen Eintrag gefunden. "+
-							"Stattdessen habe ich folgenden Eintrag fuer den %v gefunden: %v.",
+							"Der nächste Eintrag ist vom %v. Er lautet: %v.",
 							entryDate.Day(), int(entryDate.Month()), entryDate.Year(), entry.EntryDate, entry.EntryText)),
 					},
 				}
