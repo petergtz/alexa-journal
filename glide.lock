@@ -1,10 +1,12 @@
-hash: 2b8b431091be13a16ec92a1323fb91d45366f013e61c115b74f07fb7ecc81980
-updated: 2018-12-20T16:56:24.34689+01:00
+hash: aa2297e9f92398a8c851f001c9c092102d691c2caf0d6c7b8ab181e7c7e618e6
+updated: 2018-12-31T01:25:42.893684+01:00
 imports:
 - name: github.com/golang/protobuf
   version: 1918e1ff6ffd2be7bed0553df8650672c3bfe80d
   subpackages:
   - proto
+- name: github.com/mitchellh/mapstructure
+  version: 3536a929edddb9a5b34bd6861dc4a9647cb459fe
 - name: github.com/onsi/ginkgo
   version: aec9277ec956b65322f6ecee8196a5ff3a01be5f
   subpackages:
@@ -105,6 +107,10 @@ testImports:
   - util
   - watch
   - winfile
+- name: github.com/petergtz/pegomock
+  version: 9750219ad78bfad9ba455ed537b518397a675228
+  subpackages:
+  - internal/verify
 - name: golang.org/x/sys
   version: 9b800f95dbbc54abff0acf7ee32d88ba4e328c89
   subpackages:
