@@ -1,0 +1,352 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "mein tagebuch",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "NewEntryIntent",
+                    "slots": [
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE"
+                        },
+                        {
+                            "name": "text",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "Erstelle einen neuen Eintrag für {date}",
+                        "Erstelle einen neuen Eintrag",
+                        "Neuen Eintrag verfassen",
+                        "Neuen Eintrag erstellen",
+                        "Neuer Tagebucheintrag",
+                        "Neuer Eintrag"
+                    ]
+                },
+                {
+                    "name": "ReadExistingEntryAbsoluteDateIntent",
+                    "slots": [
+                        {
+                            "name": "year",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER"
+                        },
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE",
+                            "samples": [
+                                "{date}",
+                                "{date} {year}"
+                            ]
+                        }
+                    ],
+                    "samples": [
+                        "Lies den Eintrag von {date} vor",
+                        "Lese einen Eintrag vor",
+                        "Lies einen Eintrag vor",
+                        "Was war am {date} {year} ",
+                        "Lies den Eintrag vom {date} {year} vor",
+                        "Lies den Eintrag von {date} {year} vor",
+                        "Lese den Eintrag vom {date} {year} vor",
+                        "Eintrag vom {date} {year} öffnen",
+                        "Eintrag vom {date} {year} vorlesen",
+                        "Vorhandene Einträge vorlesen",
+                        "Vorhandenen Eintrag vorlesen"
+                    ]
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "ReadExistingEntryRelativeDateIntent",
+                    "slots": [
+                        {
+                            "name": "number",
+                            "type": "AMAZON.NUMBER"
+                        },
+                        {
+                            "name": "unit",
+                            "type": "Unit"
+                        }
+                    ],
+                    "samples": [
+                        "War war heute vor {number} {unit} "
+                    ]
+                },
+                {
+                    "name": "ListAllEntriesInDate",
+                    "slots": [
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE"
+                        }
+                    ],
+                    "samples": [
+                        "Welche Einträge gibt es für {date}",
+                        "Alle Einträge vom {date}",
+                        "Alle Einträge im {date}",
+                        "Welche Einträge gibt es im {date}",
+                        "Liste alle Einträge vom {date}"
+                    ]
+                },
+                {
+                    "name": "ReadAllEntriesInDate",
+                    "slots": [
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE"
+                        }
+                    ],
+                    "samples": [
+                        "Was war im {date} ",
+                        "Lies alle Einträge von {date}",
+                        "Lese alle Einträge von {date}",
+                        "Lese alle Einträge vom {date}",
+                        "Lies alle Einträge vom {date}"
+                    ]
+                },
+                {
+                    "name": "AMAZON.NextIntent",
+                    "samples": []
+                }
+            ],
+            "types": [
+                {
+                    "name": "Unit",
+                    "values": [
+                        {
+                            "id": "DAYS",
+                            "name": {
+                                "value": "Tagen",
+                                "synonyms": [
+                                    "Tage",
+                                    "Tag"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "MONTHS",
+                            "name": {
+                                "value": "Monaten",
+                                "synonyms": [
+                                    "Monate",
+                                    "Monat"
+                                ]
+                            }
+                        },
+                        {
+                            "id": "YEARS",
+                            "name": {
+                                "value": "Jahren",
+                                "synonyms": [
+                                    "Jahre",
+                                    "Jahr"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "dialog": {
+            "intents": [
+                {
+                    "name": "NewEntryIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.1245623180245.321245383492"
+                            }
+                        },
+                        {
+                            "name": "text",
+                            "type": "AMAZON.SearchQuery",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.1245623180245.1297424589269"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ReadExistingEntryAbsoluteDateIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "year",
+                            "type": "AMAZON.FOUR_DIGIT_NUMBER",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        },
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.1231923745789.768992757196"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "ReadExistingEntryRelativeDateIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "number",
+                            "type": "AMAZON.NUMBER",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        },
+                        {
+                            "name": "unit",
+                            "type": "Unit",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        "prompts": [
+            {
+                "id": "Elicit.Slot.1245623180245.1297424589269",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Wie soll der neue Eintrag lauten?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1245623180245.321245383492",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Für welches Datum soll der Eintrag erstellt werden?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.776005764143.80747049922",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Eintrag aus welchem Jahr?"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "Eintrag von welchem Datum?"
+                    }
+                ]
+            },
+            {
+                "id": "Slot.Validation.231783751652.1404829072228.1478270692740",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Falscher Zeitraum"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.231783751652.1151133788528",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Aus welchem Jahr?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.231783751652.755945983227",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Welcher Monat?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.231783751652.1151182401806",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Welcher Tag?"
+                    }
+                ]
+            },
+            {
+                "id": "Slot.Validation.231783751652.1151182401806.1504171673313",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Maximum ist einunddreisig."
+                    }
+                ]
+            },
+            {
+                "id": "Slot.Validation.231783751652.1151182401806.1047158167529",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Zu klein."
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1205185079740.28250208289",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Welcher Monat?"
+                    }
+                ]
+            },
+            {
+                "id": "Slot.Validation.1495799678220.1512244555631.883584846627",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Bitte benuzten Sie ein einen gültigen Monat."
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1231923745789.768992757196",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Von welchem Datum soll ich einen Eintrag vorlesen?"
+                    }
+                ]
+            }
+        ]
+    }
+}
