@@ -71,6 +71,22 @@ var months = map[string]int{
 	"november":  11,
 	"dezember":  12,
 }
+
+var monthsReverse = map[int]string{
+	1:  "januar",
+	2:  "februar",
+	3:  "maerz",
+	4:  "april",
+	5:  "mai",
+	6:  "juni",
+	7:  "juli",
+	8:  "august",
+	9:  "september",
+	10: "oktober",
+	11: "november",
+	12: "dezember",
+}
+
 var weekdays = map[string]string{
 	"Monday":    "Montag",
 	"Tuesday":   "Dienstag",
@@ -305,7 +321,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					if len(entries) == 0 {
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
-								OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für den Zeitraum " + strings.Replace(intent.Slots["date"].Value[:7], "-", "/", -1) + " gefunden.")),
+								OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + " gefunden.")),
 							},
 							SessionAttributes: requestEnv.Session.Attributes,
 						}
@@ -316,7 +332,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					}
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
-							OutputSpeech: plainText(fmt.Sprintf("Folgende Einträge habe ich für den Zeitraum " + strings.Replace(intent.Slots["date"].Value[:7], "-", "/", -1) + " gefunden: " +
+							OutputSpeech: plainText(fmt.Sprintf("Folgende Einträge habe ich für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + " gefunden: " +
 								strings.Join(dates, ". "))),
 						},
 						SessionAttributes: requestEnv.Session.Attributes,
@@ -345,7 +361,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					if len(entries) == 0 {
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
-								OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für den Zeitraum " + strings.Replace(intent.Slots["date"].Value[:7], "-", "/", -1) + " gefunden.")),
+								OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + " gefunden.")),
 							},
 							SessionAttributes: requestEnv.Session.Attributes,
 						}
@@ -356,7 +372,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					}
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
-							OutputSpeech: plainText(fmt.Sprintf("Hier sind die Einträge für den Zeitraum " + strings.Replace(intent.Slots["date"].Value[:7], "-", "/", -1) + ": " +
+							OutputSpeech: plainText(fmt.Sprintf("Hier sind die Einträge für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + ": " +
 								strings.Join(tuples, ". "))),
 						},
 						SessionAttributes: requestEnv.Session.Attributes,
@@ -486,6 +502,21 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 	default:
 		return internalError()
 	}
+}
+
+func readableStringFrom(dateLike string) string {
+	r := regexp.MustCompile(`(\d{4})-(\d{2})(-XX)?`)
+	if matched := r.MatchString(dateLike); matched {
+		subMatches := r.FindStringSubmatch(dateLike)
+		yearString := subMatches[1]
+		monthString := subMatches[2]
+		month, e := strconv.Atoi(monthString)
+		if e != nil {
+			panic(e)
+		}
+		return monthsReverse[month] + " " + yearString
+	}
+	return dateLike
 }
 
 func plainText(text string) *alexa.OutputSpeech {
