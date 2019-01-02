@@ -25,6 +25,17 @@ var _ = Describe("Journal", func() {
 
 			Expect(journal.GetEntry(date.MustAutoParse("1994-08-20"))).To(Equal("Example text"))
 		})
+
+		It("concats multiple entries with same date", func() {
+			journal := &journaldrive.Journal{Files: fileService}
+
+			journal.AddEntry(date.MustAutoParse("1994-08-20"), "one")
+			journal.AddEntry(date.MustAutoParse("1994-08-20"), "two")
+			journal.AddEntry(date.MustAutoParse("1994-08-20"), "three")
+
+			Expect(journal.GetEntry(date.MustAutoParse("1994-08-20"))).To(Equal("one. two. three"))
+		})
+
 	})
 
 	FDescribe("GetClosestEntry", func() {

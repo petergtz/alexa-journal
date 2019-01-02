@@ -3,6 +3,7 @@ package journaldrive
 import (
 	"context"
 	"io/ioutil"
+	"sort"
 	"strings"
 	"time"
 
@@ -75,16 +76,32 @@ func (j *Journal) AddEntry(entryDate date.Date, text string) error {
 }
 
 func (j *Journal) GetEntry(entryDate date.Date) (string, error) {
+	var entriesFound []Entry
 	for _, line := range strings.Split((j.Content), "\n") {
 		parts := strings.Split(line, "\t")
 		if len(parts) != 3 {
 			continue
 		}
 		if parts[1] == entryDate.String() {
-			return parts[2], nil
+			entriesFound = append(entriesFound, Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]})
 		}
 	}
-	return "", nil
+	sort.SliceStable(entriesFound, func(i int, j int) bool {
+		iTime, e := time.Parse("2006-01-02 15:04:05 -0700 MST", entriesFound[i].Timestamp)
+		if e != nil {
+			panic(e)
+		}
+		jTime, e := time.Parse("2006-01-02 15:04:05 -0700 MST", entriesFound[j].Timestamp)
+		if e != nil {
+			panic(e)
+		}
+		return iTime.Before(jTime)
+	})
+	var texts []string
+	for _, entry := range entriesFound {
+		texts = append(texts, entry.EntryText)
+	}
+	return strings.Join(texts, ". "), nil
 }
 
 func (j *Journal) GetClosestEntry(entryDate date.Date) (Entry, error) {
