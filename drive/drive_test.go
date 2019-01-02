@@ -38,7 +38,7 @@ var _ = Describe("Journal", func() {
 
 	})
 
-	FDescribe("GetClosestEntry", func() {
+	Describe("GetClosestEntry", func() {
 		It("can find entry", func() {
 			journal := &journaldrive.Journal{Files: fileService}
 
@@ -48,22 +48,22 @@ var _ = Describe("Journal", func() {
 
 			entry, e := journal.GetClosestEntry(date.MustAutoParse("1994-08-01"))
 			Expect(e).NotTo(HaveOccurred())
-			Expect(entry.EntryDate).To(Equal("1994-08-04"))
+			Expect(entry.EntryDate).To(Equal(date.MustAutoParse("1994-08-04")))
 			Expect(entry.EntryText).To(Equal("One"))
 
 			entry, e = journal.GetClosestEntry(date.MustAutoParse("1994-08-18"))
 			Expect(e).NotTo(HaveOccurred())
-			Expect(entry.EntryDate).To(Equal("1994-08-20"))
+			Expect(entry.EntryDate).To(Equal(date.MustAutoParse("1994-08-20")))
 			Expect(entry.EntryText).To(Equal("Two"))
 
 			entry, e = journal.GetClosestEntry(date.MustAutoParse("1994-08-25"))
 			Expect(e).NotTo(HaveOccurred())
-			Expect(entry.EntryDate).To(Equal("1994-08-25"))
+			Expect(entry.EntryDate).To(Equal(date.MustAutoParse("1994-08-25")))
 			Expect(entry.EntryText).To(Equal("Three"))
 
 			entry, e = journal.GetClosestEntry(date.MustAutoParse("1994-08-27"))
 			Expect(e).NotTo(HaveOccurred())
-			Expect(entry.EntryDate).To(Equal("1994-08-25"))
+			Expect(entry.EntryDate).To(Equal(date.MustAutoParse("1994-08-25")))
 			Expect(entry.EntryText).To(Equal("Three"))
 		})
 	})
