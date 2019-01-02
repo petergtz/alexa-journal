@@ -107,18 +107,18 @@ func (j *Journal) GetClosestEntry(entryDate date.Date) (Entry, error) {
 		diff := entryDate.Sub(d)
 
 		if diff == 0 {
-			return Entry{parts[0], parts[1], parts[2]}, nil
+			return Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]}, nil
 		}
 		if diff > 0 {
 			if int(diff) < closestNegativeDiff {
 				closestNegativeDiff = int(diff)
-				closestNegativeEntry = &Entry{parts[0], parts[1], parts[2]}
+				closestNegativeEntry = &Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]}
 			}
 		}
 		if diff < 0 {
 			if int(diff) > closestPositiveDiff {
 				closestPositiveDiff = int(diff)
-				closestPositiveEntry = &Entry{parts[0], parts[1], parts[2]}
+				closestPositiveEntry = &Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]}
 			}
 		}
 	}
@@ -133,7 +133,7 @@ func (j *Journal) GetClosestEntry(entryDate date.Date) (Entry, error) {
 
 type Entry struct {
 	Timestamp string
-	EntryDate string
+	EntryDate date.Date
 	EntryText string
 }
 
@@ -145,7 +145,7 @@ func (j *Journal) GetEntries(timeRange string) ([]Entry, error) {
 			continue
 		}
 		if strings.HasPrefix(parts[1], timeRange) {
-			result = append(result, Entry{parts[0], parts[1], parts[2]})
+			result = append(result, Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]})
 		}
 	}
 	return result, nil
