@@ -382,7 +382,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					entryDate, e = date.AutoParse(intent.Slots["year"].Value + intent.Slots["date"].Value[4:])
 				}
 				if e != nil {
-					log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, e)
+					log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, "error", e)
 					return internalError()
 				}
 
@@ -420,7 +420,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 				today := date.NewAt(time.Now())
 				x, e := strconv.Atoi(intent.Slots["number"].Value)
 				if e != nil {
-					log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, e)
+					log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, "error", e)
 					return internalError()
 				}
 				var entryDate date.Date
