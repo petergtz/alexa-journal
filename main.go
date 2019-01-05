@@ -410,6 +410,12 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					}
 				}
 				closestEntry := journal.GetClosestEntry(entryDate)
+				if closestEntry == (j.Entry{}) {
+					return &alexa.ResponseEnvelope{Version: "1.0",
+						Response:          &alexa.Response{OutputSpeech: plainText(fmt.Sprintf("Dein Tagebuch ist noch leer."))},
+						SessionAttributes: requestEnv.Session.Attributes,
+					}
+				}
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
 						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v keinen Eintrag gefunden. "+
