@@ -1,4 +1,4 @@
-package journaldrive_test
+package journal_test
 
 import (
 	"testing"
@@ -9,5 +9,5 @@ import (
 
 func TestDrive(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Drive Test Suite")
+	RunSpecs(t, "Journal Test Suite")
 }

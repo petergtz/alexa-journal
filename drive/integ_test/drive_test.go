@@ -6,7 +6,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/petergtz/alexa-journal/drive"
-	"github.com/rickb777/date"
 )
 
 var _ = Describe("Drive", func() {
@@ -19,14 +18,12 @@ var _ = Describe("Drive", func() {
 		}
 	})
 
-	It("can add entry", func() {
-		journal := journaldrive.NewJournal(token, "test-journal.tsv")
-		d := date.Today().Add(-10)
-		e := journal.AddEntry(d, "Test")
-		Expect(e).NotTo(HaveOccurred())
+	It("can get and update content", func() {
 
-		text, e := journal.GetEntry(d)
-		Expect(e).NotTo(HaveOccurred())
-		Expect(text).To(Equal("Test"))
+		fileService := journaldrive.NewDriveJournalFileService(token, "test-journal.tsv")
+		content := fileService.Content()
+		fileService.Update(content + "\nanother line here")
+		content2 := fileService.Content()
+		Expect(content2).To(Equal(content + "\nanother line here"))
 	})
 })

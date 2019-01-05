@@ -10,11 +10,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/petergtz/alexa-journal/drive"
+	j "github.com/petergtz/alexa-journal/journal"
+
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"github.com/rickb777/date"
 
-	"github.com/petergtz/alexa-journal/drive"
 	"github.com/petergtz/go-alexa"
 	"go.uber.org/zap"
 )
@@ -33,7 +35,8 @@ func main() {
 
 	handler := &alexa.Handler{
 		Skill: &JournalSkill{
-			log: log,
+			log:             log,
+			journalProvider: &journaldrive.DriveJournalProvider{},
 		},
 		Log: log,
 		ExpectedApplicationID: os.Getenv("APPLICATION_ID"),
@@ -51,7 +54,7 @@ func main() {
 }
 
 type JournalSkill struct {
-	journalProvider *journaldrive.JournalProvider
+	journalProvider j.JournalProvider
 	log             *zap.SugaredLogger
 }
 
@@ -127,7 +130,8 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 		}
 
 	case "IntentRequest":
-		journal := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+		file := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+		journal := j.Journal{Content: file.Content()}
 		log.Debugw("Journal downloaded")
 
 		var sessionAttributes SessionAttributes
@@ -272,7 +276,8 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 						log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, "error", e)
 						return internalError()
 					}
-					e = journal.AddEntry(date, strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". "))
+					journal.AddEntry(date, strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". "))
+					e = file.Update(journal.Content)
 					if e != nil {
 						log.Errorw("Could not add entry", "date", date, "text", strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". "), "error", e)
 						return internalError()
@@ -313,11 +318,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
 			case "COMPLETED":
 				if matched, e := regexp.MatchString(`\d{4}-\d{2}(-XX)?`, intent.Slots["date"].Value); e == nil && matched {
-					entries, e := journal.GetEntries(intent.Slots["date"].Value[:7])
-					if e != nil {
-						log.Errorw("Could not get entries", "timeRange", intent.Slots["date"].Value[:7], "error", e)
-						return internalError()
-					}
+					entries := journal.GetEntries(intent.Slots["date"].Value[:7])
 					if len(entries) == 0 {
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
@@ -353,11 +354,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
 			case "COMPLETED":
 				if matched, e := regexp.MatchString(`\d{4}-\d{2}(-XX)?`, intent.Slots["date"].Value); e == nil && matched {
-					entries, e := journal.GetEntries(intent.Slots["date"].Value[:7])
-					if e != nil {
-						log.Errorw("Could not get entries", "timeRange", intent.Slots["date"].Value[:7], "error", e)
-						return internalError()
-					}
+					entries := journal.GetEntries(intent.Slots["date"].Value[:7])
 					if len(entries) == 0 {
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
@@ -402,11 +399,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					return internalError()
 				}
 
-				text, e := journal.GetEntry(entryDate)
-				if e != nil {
-					log.Errorw("Could not get entry", "date", entryDate, "error", e)
-					return internalError()
-				}
+				text := journal.GetEntry(entryDate)
 				if text != "" {
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
@@ -416,7 +409,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 						SessionAttributes: requestEnv.Session.Attributes,
 					}
 				}
-				closestEntry, e := journal.GetClosestEntry(entryDate)
+				closestEntry := journal.GetClosestEntry(entryDate)
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
 						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v keinen Eintrag gefunden. "+
@@ -451,12 +444,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					return internalError()
 				}
 
-				text, e := journal.GetEntry(entryDate)
-				if e != nil {
-					log.Errorw("Could not get entry", "date", entryDate, "error", e)
-					return internalError()
-				}
-
+				text := journal.GetEntry(entryDate)
 				if text != "" {
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
@@ -466,11 +454,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 						SessionAttributes: requestEnv.Session.Attributes,
 					}
 				}
-				closestEntry, e := journal.GetClosestEntry(entryDate)
-				if e != nil {
-					log.Errorw("Could not get closest entry", "date", entryDate, "error", e)
-					return internalError()
-				}
+				closestEntry := journal.GetClosestEntry(entryDate)
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
 						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v keinen Eintrag gefunden. "+
