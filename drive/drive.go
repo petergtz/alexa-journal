@@ -4,25 +4,31 @@ import (
 	"context"
 	"io/ioutil"
 	"strings"
+	"time"
 
 	"github.com/petergtz/alexa-journal/journal"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/drive/v3"
 )
 
-type DriveJournalProvider struct{}
+type DriveJournalProvider struct {
+	Log *zap.SugaredLogger
+}
 
 func (jp *DriveJournalProvider) Get(accessToken string) journal.JournalFileService {
-	return NewDriveJournalFileService(accessToken, "my-journal.tsv")
+	return NewDriveJournalFileService(accessToken, "my-journal.tsv", jp.Log)
 }
 
 type DriveJournalFileService struct {
 	files  *drive.FilesService
 	fileID string
+	log    *zap.SugaredLogger
 }
 
-func NewDriveJournalFileService(accessToken string, filename string) *DriveJournalFileService {
+func NewDriveJournalFileService(accessToken string, filename string, log *zap.SugaredLogger) *DriveJournalFileService {
+	startTime := time.Now()
 	d, e := drive.New(
 		oauth2.NewClient(
 			context.TODO(),
@@ -32,10 +38,13 @@ func NewDriveJournalFileService(accessToken string, filename string) *DriveJourn
 	if e != nil {
 		panic(errors.Wrap(e, "Could not instantiate drive"))
 	}
+	log.Debugw("Time taken to create drive client", "time", time.Since(startTime))
+	startTime = time.Now()
 	fileID, e := getOrCreateJournalFile(d.Files, filename)
 	if e != nil {
 		panic(errors.Wrap(e, "Could not get or create journal file in Google drive."))
 	}
+	log.Debugw("Time taken to get or create file in drive", "time", time.Since(startTime))
 	return &DriveJournalFileService{fileID: fileID, files: d.Files}
 }
 

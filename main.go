@@ -36,7 +36,7 @@ func main() {
 	handler := &alexa.Handler{
 		Skill: &JournalSkill{
 			log:             log,
-			journalProvider: &journaldrive.DriveJournalProvider{},
+			journalProvider: &journaldrive.DriveJournalProvider{Log: log},
 		},
 		Log: log,
 		ExpectedApplicationID: os.Getenv("APPLICATION_ID"),
