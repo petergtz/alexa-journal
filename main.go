@@ -12,6 +12,7 @@ import (
 
 	"github.com/petergtz/alexa-journal/drive"
 	j "github.com/petergtz/alexa-journal/journal"
+	"github.com/petergtz/alexa-journal/util"
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
@@ -105,7 +106,14 @@ type SessionAttributes struct {
 	Drafting bool                `json:"drafting"`
 }
 
-func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.ResponseEnvelope {
+func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (responseEnv *alexa.ResponseEnvelope) {
+	defer func() {
+		if e := recover(); e != nil {
+			h.log.Errorw("Internal Server Error.", "error", fmt.Sprintf("%+v", e))
+			responseEnv = internalError()
+		}
+	}()
+
 	log := h.log.With("request", requestEnv.Request, "SessionAttributes", requestEnv.Session.Attributes)
 	log.Infow("Request started")
 	defer log.Infow("Request completed")
@@ -137,10 +145,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 		var sessionAttributes SessionAttributes
 		sessionAttributes.Drafts = make(map[string][]string)
 		e := mapstructure.Decode(requestEnv.Session.Attributes, &sessionAttributes)
-		if e != nil {
-			log.Errorw("Could not parse sessionAttributes", "error", e)
-			return internalError()
-		}
+		util.PanicOnError(errors.Wrap(e, "Could not parse sessionAttributes"))
 
 		intent := requestEnv.Request.Intent
 		switch intent.Name {
@@ -158,11 +163,6 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					if _, exists := sessionAttributes.Drafts[intent.Slots["date"].Value]; exists && !sessionAttributes.Drafting {
 						switch intent.Slots["text"].ConfirmationStatus {
 						case "NONE":
-							sessionAttributesMap, e := mapStringInterfaceFrom(sessionAttributes)
-							if e != nil {
-								log.Errorw("Could not get map[string]interface{} from sessionAttributes", "error", e)
-								return internalError()
-							}
 							return &alexa.ResponseEnvelope{Version: "1.0",
 								Response: &alexa.Response{
 									OutputSpeech: plainText("Fuer dieses Datum hast Du bereits einen Eintrag entworfen. " +
@@ -170,7 +170,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 										" Moechtest Du mit diesem Eintrag weiter machen?"),
 									Directives: []interface{}{alexa.DialogDirective{Type: "Dialog.ConfirmSlot", SlotToConfirm: "text"}},
 								},
-								SessionAttributes: sessionAttributesMap,
+								SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 							}
 						case "CONFIRMED":
 							break
@@ -181,31 +181,21 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					switch intent.Slots["text"].Value {
 					case "":
 						sessionAttributes.Drafting = true
-						sessionAttributesMap, e := mapStringInterfaceFrom(sessionAttributes)
-						if e != nil {
-							log.Errorw("Could not get map[string]interface{} from sessionAttributes", "error", e)
-							return internalError()
-						}
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
 								OutputSpeech: plainText("Du kannst Deinen eintrag nun verfassen; ich werde jeden Teil kurz bestaetigen, sodass du die moeglichkeit hast ihn zu \"korrigieren\" oder \"anzuhoeren\". Sage \"fertig\", wenn Du fertig bist."),
 								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
 							},
-							SessionAttributes: sessionAttributesMap,
+							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
 					default:
 						sessionAttributes.Drafts[intent.Slots["date"].Value] = append(sessionAttributes.Drafts[intent.Slots["date"].Value], intent.Slots["text"].Value)
-						sessionAttributesMap, e := mapStringInterfaceFrom(sessionAttributes)
-						if e != nil {
-							log.Errorw("Could not get map[string]interface{} from sessionAttributes", "error", e)
-							return internalError()
-						}
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
 								OutputSpeech: plainText("OK, weiter?"),
 								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
 							},
-							SessionAttributes: sessionAttributesMap,
+							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
 					case "wiederhole", "wiederholen":
 						if len(sessionAttributes.Drafts[intent.Slots["date"].Value]) == 0 {
@@ -236,29 +226,19 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 							}
 						}
 						sessionAttributes.Drafts[intent.Slots["date"].Value] = sessionAttributes.Drafts[intent.Slots["date"].Value][:len(sessionAttributes.Drafts[intent.Slots["date"].Value])-1]
-						sessionAttributesMap, e := mapStringInterfaceFrom(sessionAttributes)
-						if e != nil {
-							log.Errorw("Could not get map[string]interface{} from sessionAttributes", "error", e)
-							return internalError()
-						}
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
 								OutputSpeech: plainText("OK. Bitte verfasse den letzten Teil Deines Eintrags erneut."),
 								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
 							},
-							SessionAttributes: sessionAttributesMap,
+							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
 					case "fertig":
 						if len(sessionAttributes.Drafts[intent.Slots["date"].Value]) == 0 {
 							sessionAttributes.Drafting = false
-							sessionAttributesMap, e := mapStringInterfaceFrom(sessionAttributes)
-							if e != nil {
-								log.Errorw("Could not get map[string]interface{} from sessionAttributes", "error", e)
-								return internalError()
-							}
 							return &alexa.ResponseEnvelope{Version: "1.0",
 								Response:          &alexa.Response{OutputSpeech: plainText("Dein Eintrag ist leer. Es gibt nichts zu speichern.")},
-								SessionAttributes: sessionAttributesMap,
+								SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 							}
 						}
 						return &alexa.ResponseEnvelope{Version: "1.0",
@@ -272,45 +252,31 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					}
 				case "CONFIRMED":
 					date, e := date.AutoParse(intent.Slots["date"].Value)
-					if e != nil {
-						log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, "error", e)
-						return internalError()
-					}
+					util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to date", intent.Slots["date"].Value))
+
 					journal.AddEntry(date, strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". "))
 					e = file.Update(journal.Content)
-					if e != nil {
-						log.Errorw("Could not add entry", "date", date, "text", strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". "), "error", e)
-						return internalError()
-					}
+					util.PanicOnError(errors.Wrapf(e, "Could not add entry ('%v', '%v')", date, strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". ")))
+
 					sessionAttributes.Drafting = false
 					delete(sessionAttributes.Drafts, intent.Slots["date"].Value)
-					sessionAttributesMap, e := mapStringInterfaceFrom(sessionAttributes)
-					if e != nil {
-						log.Errorw("Could not get map[string]interface{} from sessionAttributes", "error", e)
-						return internalError()
-					}
 
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response:          &alexa.Response{OutputSpeech: plainText("Okay. Gespeichert.")},
-						SessionAttributes: sessionAttributesMap,
+						SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 					}
 
 				case "DENIED":
 					sessionAttributes.Drafting = false
-					sessionAttributesMap, e := mapStringInterfaceFrom(sessionAttributes)
-					if e != nil {
-						log.Errorw("Could not get map[string]interface{} from sessionAttributes", "error", e)
-						return internalError()
-					}
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response:          &alexa.Response{OutputSpeech: plainText("Okay. Nicht gespeichert.")},
-						SessionAttributes: sessionAttributesMap,
+						SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 					}
 				default:
-					return internalError()
+					panic(errors.New("Invalid intent.ConfirmationStatus"))
 				}
 			default:
-				return internalError()
+				panic(errors.New("Invalid requestEnv.Request.DialogState"))
 			}
 		case "ListAllEntriesInDate":
 			switch requestEnv.Request.DialogState {
@@ -346,7 +312,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
 			default:
-				return internalError()
+				panic(errors.New("Invalid requestEnv.Request.DialogState"))
 			}
 		case "ReadAllEntriesInDate":
 			switch requestEnv.Request.DialogState {
@@ -382,7 +348,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
 			default:
-				return internalError()
+				panic(errors.New("Invalid requestEnv.Request.DialogState"))
 			}
 
 		case "ReadExistingEntryAbsoluteDateIntent":
@@ -394,10 +360,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 				if intent.Slots["year"].Value != "" {
 					entryDate, e = date.AutoParse(intent.Slots["year"].Value + intent.Slots["date"].Value[4:])
 				}
-				if e != nil {
-					log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, "error", e)
-					return internalError()
-				}
+				util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to date", intent.Slots["date"].Value))
 
 				text := journal.GetEntry(entryDate)
 				if text != "" {
@@ -425,7 +388,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
 			default:
-				return internalError()
+				panic(errors.New("Invalid requestEnv.Request.DialogState"))
 			}
 		case "ReadExistingEntryRelativeDateIntent":
 			switch requestEnv.Request.DialogState {
@@ -434,10 +397,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 			case "COMPLETED":
 				today := date.NewAt(time.Now())
 				x, e := strconv.Atoi(intent.Slots["number"].Value)
-				if e != nil {
-					log.Errorw("Could not convert string to date", "date", intent.Slots["date"].Value, "error", e)
-					return internalError()
-				}
+				util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to date", intent.Slots["date"].Value))
 				var entryDate date.Date
 				switch intent.Slots["unit"].Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID {
 				case "DAYS":
@@ -447,7 +407,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 				case "YEARS":
 					entryDate = today.AddDate(-x, 0, 0)
 				default:
-					return internalError()
+					panic(errors.New("Invalid resolution"))
 				}
 
 				text := journal.GetEntry(entryDate)
@@ -470,7 +430,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
 			default:
-				return internalError()
+				panic(errors.New("Invalid requestEnv.Request.DialogState"))
 			}
 		case "AMAZON.HelpIntent":
 			return &alexa.ResponseEnvelope{Version: "1.0",
@@ -483,15 +443,16 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) *alexa.
 				SessionAttributes: requestEnv.Session.Attributes,
 			}
 		default:
-			return internalError()
+			panic(errors.New("Invalid Intent"))
 		}
 
 	case "SessionEndedRequest":
 		return &alexa.ResponseEnvelope{Version: "1.0"}
 
 	default:
-		return internalError()
+		panic(errors.New("Invalid Request"))
 	}
+	return nil // dummy return to satisfy compiler
 }
 
 func readableStringFrom(dateLike string) string {
@@ -536,15 +497,13 @@ func internalError() *alexa.ResponseEnvelope {
 	}
 }
 
-func mapStringInterfaceFrom(sessionAttributes SessionAttributes) (map[string]interface{}, error) {
+func mapStringInterfaceFrom(sessionAttributes SessionAttributes) map[string]interface{} {
 	sessionAttributesBuf, e := json.Marshal(sessionAttributes)
-	if e != nil {
-		return nil, errors.Wrap(e, "Could not marshal sessionAttributes")
-	}
+	util.PanicOnError(errors.Wrap(e, "Could not marshal sessionAttributes"))
+
 	var sessionAttributesMap map[string]interface{}
 	e = json.Unmarshal(sessionAttributesBuf, &sessionAttributesMap)
-	if e != nil {
-		return nil, errors.Wrap(e, "Could not unmarshal sessionAttributesBuf")
-	}
-	return sessionAttributesMap, nil
+	util.PanicOnError(errors.Wrap(e, "Could not unmarshal sessionAttributesBuf"))
+
+	return sessionAttributesMap
 }
