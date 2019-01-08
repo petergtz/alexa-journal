@@ -1,7 +1,9 @@
-package journaldrive_test
+package drive_test
 
 import (
 	"os"
+
+	"go.uber.org/zap"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,11 +21,12 @@ var _ = Describe("Drive", func() {
 	})
 
 	It("can get and update content", func() {
-
-		fileService := journaldrive.NewDriveJournalFileService(token, "test-journal.tsv")
-		content := fileService.Content()
-		fileService.Update(content + "\nanother line here")
-		content2 := fileService.Content()
+		l, e := zap.NewDevelopment()
+		Expect(e).NotTo(HaveOccurred())
+		fileService := drive.NewFileService(token, "journal-test", l.Sugar())
+		content := fileService.Download()
+		fileService.Upload(content + "\nanother line here")
+		content2 := fileService.Download()
 		Expect(content2).To(Equal(content + "\nanother line here"))
 	})
 })

@@ -4,6 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	j "github.com/petergtz/alexa-journal/journal"
+	"github.com/petergtz/alexa-journal/tsv"
 	"github.com/rickb777/date"
 )
 
@@ -11,7 +12,7 @@ var _ = Describe("Journal", func() {
 	var journal j.Journal
 
 	BeforeEach(func() {
-		journal = j.Journal{}
+		journal = j.Journal{Data: &tsv.StringBasedTabularData{}}
 	})
 
 	Describe("GetEntry", func() {

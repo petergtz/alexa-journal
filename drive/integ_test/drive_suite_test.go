@@ -1,4 +1,4 @@
-package journaldrive_test
+package drive_test
 
 import (
 	"testing"

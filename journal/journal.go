@@ -8,21 +8,36 @@ import (
 	"github.com/rickb777/date"
 )
 
+type JournalProvider interface {
+	Get(accessToken string) Journal
+}
+
 type Journal struct {
-	Content string
+	Data TabularData
+}
+
+type TabularData interface {
+	Rows() [][]string
+	AppendRow(row []string)
+	Empty() bool
+}
+
+type Entry struct {
+	Timestamp string
+	EntryDate date.Date
+	EntryText string
 }
 
 func (j *Journal) AddEntry(entryDate date.Date, text string) {
-	if j.Content == "" {
-		j.Content = "timestamp\tdate\ttext\n"
+	if j.Data.Empty() {
+		j.Data.AppendRow([]string{"timestamp", "date", "text"})
 	}
-	j.Content += time.Now().Format("2006-01-02 15:04:05 -0700 MST") + "\t" + entryDate.String() + "\t" + text + "\n"
+	j.Data.AppendRow([]string{time.Now().Format("2006-01-02 15:04:05 -0700 MST"), entryDate.String(), text})
 }
 
 func (j *Journal) GetEntry(entryDate date.Date) string {
 	var entriesFound []Entry
-	for _, line := range strings.Split((j.Content), "\n") {
-		parts := strings.Split(line, "\t")
+	for _, parts := range j.Data.Rows() {
 		if len(parts) != 3 {
 			continue
 		}
@@ -53,8 +68,7 @@ func (j *Journal) GetClosestEntry(entryDate date.Date) Entry {
 
 	closestPositiveDiff := -(1 << 30)
 	closestNegativeDiff := 1 << 30
-	for _, line := range strings.Split((j.Content), "\n") {
-		parts := strings.Split(line, "\t")
+	for _, parts := range j.Data.Rows() {
 		if len(parts) != 3 {
 			continue
 		}
@@ -92,16 +106,9 @@ func (j *Journal) GetClosestEntry(entryDate date.Date) Entry {
 	return Entry{}
 }
 
-type Entry struct {
-	Timestamp string
-	EntryDate date.Date
-	EntryText string
-}
-
 func (j *Journal) GetEntries(timeRange string) []Entry {
 	var result []Entry
-	for _, line := range strings.Split((j.Content), "\n") {
-		parts := strings.Split(line, "\t")
+	for _, parts := range j.Data.Rows() {
 		if len(parts) != 3 {
 			continue
 		}

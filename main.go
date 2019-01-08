@@ -12,6 +12,7 @@ import (
 
 	"github.com/petergtz/alexa-journal/drive"
 	j "github.com/petergtz/alexa-journal/journal"
+	"github.com/petergtz/alexa-journal/tsv"
 	"github.com/petergtz/alexa-journal/util"
 
 	"github.com/mitchellh/mapstructure"
@@ -26,6 +27,18 @@ var (
 	log *zap.SugaredLogger
 )
 
+type TSVDriveFileJournalProvider struct {
+	Log *zap.SugaredLogger
+}
+
+func (jp *TSVDriveFileJournalProvider) Get(accessToken string) j.Journal {
+	return j.Journal{
+		Data: &tsv.TextFileBackedTabularData{
+			TextFileLoader: drive.NewFileService(accessToken, "my-journal.tsv", jp.Log),
+		},
+	}
+}
+
 func main() {
 	l, e := zap.NewDevelopment()
 	if e != nil {
@@ -37,7 +50,7 @@ func main() {
 	handler := &alexa.Handler{
 		Skill: &JournalSkill{
 			log:             log,
-			journalProvider: &journaldrive.DriveJournalProvider{Log: log},
+			journalProvider: &TSVDriveFileJournalProvider{Log: log},
 		},
 		Log: log,
 		ExpectedApplicationID: os.Getenv("APPLICATION_ID"),
@@ -138,8 +151,8 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 		}
 
 	case "IntentRequest":
-		file := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
-		journal := j.Journal{Content: file.Content()}
+		journal := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+		// journal := j.Journal{Content: file.Content()}
 		log.Debugw("Journal downloaded")
 
 		var sessionAttributes SessionAttributes
@@ -255,8 +268,6 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 					util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to date", intent.Slots["date"].Value))
 
 					journal.AddEntry(date, strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". "))
-					e = file.Update(journal.Content)
-					util.PanicOnError(errors.Wrapf(e, "Could not add entry ('%v', '%v')", date, strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". ")))
 
 					sessionAttributes.Drafting = false
 					delete(sessionAttributes.Drafts, intent.Slots["date"].Value)
