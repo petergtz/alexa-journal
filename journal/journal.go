@@ -13,13 +13,23 @@ type JournalProvider interface {
 }
 
 type Journal struct {
-	Data TabularData
+	Data  TabularData
+	Index Index
 }
 
 type TabularData interface {
 	Rows() [][]string
 	AppendRow(row []string)
 	Empty() bool
+}
+type Index interface {
+	Add(id string, text string)
+	Search(query string) []Rank
+}
+
+type Rank struct {
+	Result     string
+	Confidence float32
 }
 
 type Entry struct {
@@ -114,6 +124,30 @@ func (j *Journal) GetEntries(timeRange string) []Entry {
 		}
 		if strings.HasPrefix(parts[1], timeRange) {
 			result = append(result, Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]})
+		}
+	}
+	return result
+}
+
+func (j *Journal) SearchFor(query string) []Entry {
+	lookup := make(map[string]string)
+	for _, parts := range j.Data.Rows() {
+		if len(parts) != 3 {
+			continue
+		}
+		if parts[1] != "" {
+			j.Index.Add(parts[1], parts[2])
+			lookup[parts[1]] = parts[2]
+		}
+	}
+	hits := j.Index.Search(query)
+
+	result := make([]Entry, len(hits))
+	i := 0
+	for _, hit := range hits {
+		result[i] = Entry{
+			EntryDate: date.MustAutoParse(hit.Result),
+			EntryText: lookup[hit.Result],
 		}
 	}
 	return result

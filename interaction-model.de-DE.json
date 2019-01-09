@@ -121,6 +121,18 @@
                 {
                     "name": "AMAZON.NextIntent",
                     "samples": []
+                },
+                {
+                    "name": "SearchIntent",
+                    "slots": [
+                        {
+                            "name": "query",
+                            "type": "AMAZON.SearchQuery"
+                        }
+                    ],
+                    "samples": [
+                        "Suche nach {query}"
+                    ]
                 }
             ],
             "types": [

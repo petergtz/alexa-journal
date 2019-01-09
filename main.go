@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/petergtz/alexa-journal/search/custom"
+
 	"github.com/petergtz/alexa-journal/drive"
 	j "github.com/petergtz/alexa-journal/journal"
 	"github.com/petergtz/alexa-journal/tsv"
@@ -36,6 +38,7 @@ func (jp *TSVDriveFileJournalProvider) Get(accessToken string) j.Journal {
 		Data: &tsv.TextFileBackedTabularData{
 			TextFileLoader: drive.NewFileService(accessToken, "my-journal.tsv", jp.Log),
 		},
+		Index: custom.NewSearchIndex(jp.Log),
 	}
 }
 
@@ -442,6 +445,26 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				}
 			default:
 				panic(errors.New("Invalid requestEnv.Request.DialogState"))
+			}
+		case "SearchIntent":
+			entries := journal.SearchFor(intent.Slots["query"].Value)
+			if len(entries) == 0 {
+				return &alexa.ResponseEnvelope{Version: "1.0",
+					Response: &alexa.Response{
+						OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für die Suche %v gefunden.", intent.Slots["query"].Value)),
+					},
+					SessionAttributes: requestEnv.Session.Attributes,
+				}
+			}
+			var tuples []string
+			for _, entry := range entries {
+				tuples = append(tuples, weekdays[entry.EntryDate.Weekday().String()]+", "+entry.EntryDate.String()+": "+entry.EntryText)
+			}
+			return &alexa.ResponseEnvelope{Version: "1.0",
+				Response: &alexa.Response{
+					OutputSpeech: plainText(fmt.Sprintf("Hier sind die Ergebnisse für die Suche %v: %v", intent.Slots["query"].Value, strings.Join(tuples, ". "))),
+				},
+				SessionAttributes: requestEnv.Session.Attributes,
 			}
 		case "AMAZON.HelpIntent":
 			return &alexa.ResponseEnvelope{Version: "1.0",
