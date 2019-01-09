@@ -155,7 +155,6 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 
 	case "IntentRequest":
 		journal := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
-		// journal := j.Journal{Content: file.Content()}
 		log.Debugw("Journal downloaded")
 
 		var sessionAttributes SessionAttributes
@@ -451,7 +450,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			if len(entries) == 0 {
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für die Suche %v gefunden.", intent.Slots["query"].Value)),
+						OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für die Suche \"%v\" gefunden.", intent.Slots["query"].Value)),
 					},
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
@@ -462,7 +461,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			}
 			return &alexa.ResponseEnvelope{Version: "1.0",
 				Response: &alexa.Response{
-					OutputSpeech: plainText(fmt.Sprintf("Hier sind die Ergebnisse für die Suche %v: %v", intent.Slots["query"].Value, strings.Join(tuples, ". "))),
+					OutputSpeech: plainText(fmt.Sprintf("Hier sind die Ergebnisse für die Suche \"%v\": %v", intent.Slots["query"].Value, strings.Join(tuples, ". "))),
 				},
 				SessionAttributes: requestEnv.Session.Attributes,
 			}

@@ -55,7 +55,16 @@ func (j *Journal) GetEntry(entryDate date.Date) string {
 			entriesFound = append(entriesFound, Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]})
 		}
 	}
-	sort.SliceStable(entriesFound, func(i int, j int) bool {
+	sort.SliceStable(entriesFound, ByTimestamp(entriesFound))
+	var texts []string
+	for _, entry := range entriesFound {
+		texts = append(texts, entry.EntryText)
+	}
+	return strings.Join(texts, ". ")
+}
+
+func ByTimestamp(entriesFound []Entry) func(i, j int) bool {
+	return func(i int, j int) bool {
 		iTime, e := time.Parse("2006-01-02 15:04:05 -0700 MST", entriesFound[i].Timestamp)
 		if e != nil {
 			panic(e)
@@ -65,12 +74,7 @@ func (j *Journal) GetEntry(entryDate date.Date) string {
 			panic(e)
 		}
 		return iTime.Before(jTime)
-	})
-	var texts []string
-	for _, entry := range entriesFound {
-		texts = append(texts, entry.EntryText)
 	}
-	return strings.Join(texts, ". ")
 }
 
 func (j *Journal) GetClosestEntry(entryDate date.Date) Entry {
@@ -136,8 +140,10 @@ func (j *Journal) SearchFor(query string) []Entry {
 			continue
 		}
 		if parts[1] != "" {
-			j.Index.Add(parts[1], parts[2])
-			lookup[parts[1]] = parts[2]
+			if _, e := date.AutoParse(parts[1]); e == nil {
+				j.Index.Add(parts[1], parts[2])
+				lookup[parts[1]] = parts[2]
+			}
 		}
 	}
 	hits := j.Index.Search(query)
@@ -149,6 +155,12 @@ func (j *Journal) SearchFor(query string) []Entry {
 			EntryDate: date.MustAutoParse(hit.Result),
 			EntryText: lookup[hit.Result],
 		}
+		i++
 	}
+	sort.Slice(result, ByEntryDate(result))
 	return result
+}
+
+func ByEntryDate(entries []Entry) func(i, j int) bool {
+	return func(i int, j int) bool { return entries[i].EntryDate.Before(entries[j].EntryDate) }
 }
