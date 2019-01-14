@@ -9,17 +9,21 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/petergtz/alexa-journal/search/custom"
+	"go.uber.org/zap"
 )
 
 var _ = Describe("CustomIndex", func() {
 	It("finds correct entries", func() {
+		log, e := zap.NewDevelopment()
+		Expect(e).NotTo(HaveOccurred())
+
 		file, e := os.Open("../../private/my-journal.tsv")
 		Expect(e).NotTo(HaveOccurred())
 		defer file.Close()
 		b, e := ioutil.ReadAll(file)
 		Expect(e).NotTo(HaveOccurred())
 
-		index := custom.NewSearchIndex(nil)
+		index := custom.NewSearchIndex(log.Sugar())
 
 		for _, line := range strings.Split(string(b), "\n") {
 			parts := strings.Split(line, "\t")
