@@ -16,36 +16,41 @@ import (
 
 type FileService struct {
 	files  *drive.FilesService
-	fileID string
+	FileID string
 	log    *zap.SugaredLogger
 }
 
-func NewFileService(accessToken string, filename string, log *zap.SugaredLogger) *FileService {
-	startTime := time.Now()
-	d, e := drive.New(
+func newDriveService(accessToken string) *drive.Service {
+	driveService, e := drive.New(
 		oauth2.NewClient(
 			context.TODO(),
 			oauth2.StaticTokenSource(&oauth2.Token{
 				AccessToken: accessToken,
 			})))
 	util.PanicOnError(errors.Wrap(e, "Could not instantiate drive"))
+	return driveService
+}
+
+func NewFileService(accessToken string, filename string, log *zap.SugaredLogger) *FileService {
+	startTime := time.Now()
+	driveService := newDriveService(accessToken)
 
 	log.Debugw("Time taken to create drive client", "time", time.Since(startTime))
 	startTime = time.Now()
-	fileID, e := getOrCreateFile(d.Files, filename, log)
+	fileID, e := getOrCreateFile(driveService.Files, filename, log)
 	util.PanicOnError(e)
 
 	log.Debugw("Time taken to get or create file in drive", "time", time.Since(startTime))
-	return &FileService{fileID: fileID, files: d.Files}
+	return &FileService{FileID: fileID, files: driveService.Files}
 }
 
 func (dfs *FileService) Upload(content string) {
-	_, e := dfs.files.Update(dfs.fileID, &drive.File{}).Media(strings.NewReader(content)).Do()
+	_, e := dfs.files.Update(dfs.FileID, &drive.File{}).Media(strings.NewReader(content)).Do()
 	util.PanicOnError(errors.Wrap(e, "Could not upload file contents"))
 }
 
 func (dfs *FileService) Download() string {
-	download, e := dfs.files.Get(dfs.fileID).Download()
+	download, e := dfs.files.Get(dfs.FileID).Download()
 	util.PanicOnError(errors.Wrap(e, "Could not download file"))
 	defer download.Body.Close()
 
@@ -78,4 +83,14 @@ func getOrCreateFile(files *drive.FilesService, filename string, log *zap.Sugare
 		}
 		return "", errors.Errorf("Expected exactly 0 or 1 file in drive. Found: %v", strings.Join(filenames, ", "))
 	}
+}
+
+func DeleteFile(accessToken string, fileID string) {
+	e := newDriveService(accessToken).Files.Delete(fileID).Do()
+	util.PanicOnError(errors.Wrap(e, "Could not delete file"))
+}
+
+func MoveToTrash(accessToken string, fileID string) {
+	_, e := newDriveService(accessToken).Files.Update(fileID, &drive.File{Trashed: true}).Do()
+	util.PanicOnError(errors.Wrap(e, "Could not move file to trash"))
 }

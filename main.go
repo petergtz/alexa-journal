@@ -42,6 +42,15 @@ func (jp *TSVDriveFileJournalProvider) Get(accessToken string) j.Journal {
 	}
 }
 
+type DriveSheetJournalProvider struct{ Log *zap.SugaredLogger }
+
+func (jp *DriveSheetJournalProvider) Get(accessToken string) j.Journal {
+	return j.Journal{
+		Data:  drive.NewSheetBasedTabularData(accessToken, "my-journal", "Tagebuch", jp.Log),
+		Index: custom.NewSearchIndex(jp.Log),
+	}
+}
+
 func main() {
 	l, e := zap.NewDevelopment()
 	if e != nil {
@@ -53,7 +62,7 @@ func main() {
 	handler := &alexa.Handler{
 		Skill: &JournalSkill{
 			log:             log,
-			journalProvider: &TSVDriveFileJournalProvider{Log: log},
+			journalProvider: &DriveSheetJournalProvider{Log: log},
 		},
 		Log: log,
 		ExpectedApplicationID: os.Getenv("APPLICATION_ID"),
