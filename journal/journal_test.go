@@ -1,6 +1,8 @@
 package journal_test
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	j "github.com/petergtz/alexa-journal/journal"
@@ -13,6 +15,14 @@ var _ = Describe("Journal", func() {
 
 	BeforeEach(func() {
 		journal = j.Journal{Data: &tsv.StringBasedTabularData{}}
+	})
+
+	Describe("date/time formatting and parsing", func() {
+		It("works", func() {
+			t := time.Now().UTC()
+			s := t.Format(j.TimestampFormat)
+			Expect(time.Parse(j.TimestampFormat, s)).To(Equal(t.Truncate(time.Second)))
+		})
 	})
 
 	Describe("GetEntry", func() {

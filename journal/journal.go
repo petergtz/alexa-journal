@@ -1,10 +1,12 @@
 package journal
 
 import (
+	"errors"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/petergtz/alexa-journal/util"
 	"github.com/rickb777/date"
 )
 
@@ -33,16 +35,27 @@ type Rank struct {
 }
 
 type Entry struct {
-	Timestamp string
+	Timestamp time.Time
 	EntryDate date.Date
 	EntryText string
 }
+
+func entryFromSlice(parts []string) Entry {
+	timestamp, e := time.Parse(TimestampFormat, parts[0])
+	util.PanicOnError(e)
+	if parts[1] == "" {
+		panic(errors.New("parts[1] must not be empty"))
+	}
+	return Entry{timestamp, date.MustAutoParse(parts[1]), parts[2]}
+}
+
+const TimestampFormat = "2006-01-02 15:04:05"
 
 func (j *Journal) AddEntry(entryDate date.Date, text string) {
 	if j.Data.Empty() {
 		j.Data.AppendRow([]string{"timestamp", "date", "text"})
 	}
-	j.Data.AppendRow([]string{time.Now().Format("2006-01-02 15:04:05 -0700 MST"), entryDate.String(), text})
+	j.Data.AppendRow([]string{time.Now().Format(TimestampFormat), entryDate.String(), text})
 }
 
 func (j *Journal) GetEntry(entryDate date.Date) string {
@@ -51,8 +64,15 @@ func (j *Journal) GetEntry(entryDate date.Date) string {
 		if len(parts) != 3 {
 			continue
 		}
-		if parts[1] == entryDate.String() {
-			entriesFound = append(entriesFound, Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]})
+		if parts[1] == "" {
+			continue
+		}
+		d, e := date.AutoParse(parts[1])
+		if e != nil {
+			continue
+		}
+		if d == entryDate {
+			entriesFound = append(entriesFound, entryFromSlice(parts))
 		}
 	}
 	sort.SliceStable(entriesFound, ByTimestamp(entriesFound))
@@ -64,17 +84,7 @@ func (j *Journal) GetEntry(entryDate date.Date) string {
 }
 
 func ByTimestamp(entriesFound []Entry) func(i, j int) bool {
-	return func(i int, j int) bool {
-		iTime, e := time.Parse("2006-01-02 15:04:05 -0700 MST", entriesFound[i].Timestamp)
-		if e != nil {
-			panic(e)
-		}
-		jTime, e := time.Parse("2006-01-02 15:04:05 -0700 MST", entriesFound[j].Timestamp)
-		if e != nil {
-			panic(e)
-		}
-		return iTime.Before(jTime)
-	}
+	return func(i int, j int) bool { return entriesFound[i].Timestamp.Before(entriesFound[j].Timestamp) }
 }
 
 func (j *Journal) GetClosestEntry(entryDate date.Date) Entry {
@@ -96,18 +106,20 @@ func (j *Journal) GetClosestEntry(entryDate date.Date) Entry {
 		diff := entryDate.Sub(d)
 
 		if diff == 0 {
-			return Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]}
+			return entryFromSlice(parts)
 		}
 		if diff > 0 {
 			if int(diff) < closestNegativeDiff {
 				closestNegativeDiff = int(diff)
-				closestNegativeEntry = &Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]}
+				entry := entryFromSlice(parts)
+				closestNegativeEntry = &entry
 			}
 		}
 		if diff < 0 {
 			if int(diff) > closestPositiveDiff {
 				closestPositiveDiff = int(diff)
-				closestPositiveEntry = &Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]}
+				entry := entryFromSlice(parts)
+				closestPositiveEntry = &entry
 			}
 		}
 	}
@@ -127,7 +139,7 @@ func (j *Journal) GetEntries(timeRange string) []Entry {
 			continue
 		}
 		if strings.HasPrefix(parts[1], timeRange) {
-			result = append(result, Entry{parts[0], date.MustAutoParse(parts[1]), parts[2]})
+			result = append(result, entryFromSlice(parts))
 		}
 	}
 	return result
