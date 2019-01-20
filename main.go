@@ -29,26 +29,59 @@ var (
 	log *zap.SugaredLogger
 )
 
+type JournalProvider interface {
+	Get(accessToken string) (j.Journal, error)
+}
+
+type ErrorInterpreter interface {
+	Interpret(error) string
+}
+
 type TSVDriveFileJournalProvider struct {
 	Log *zap.SugaredLogger
 }
 
-func (jp *TSVDriveFileJournalProvider) Get(accessToken string) j.Journal {
+func (jp *TSVDriveFileJournalProvider) Get(accessToken string) (j.Journal, error) {
+	fileService, e := drive.NewFileService(accessToken, "Tagebuch.tsv", jp.Log)
+	if e != nil {
+		return j.Journal{}, e
+	}
 	return j.Journal{
-		Data: &tsv.TextFileBackedTabularData{
-			TextFileLoader: drive.NewFileService(accessToken, "my-journal.tsv", jp.Log),
-		},
+		Data:  &tsv.TextFileBackedTabularData{TextFileLoader: fileService},
 		Index: custom.NewSearchIndex(jp.Log),
+	}, nil
+}
+
+type DriveSheetErrorInterpreter struct {
+	// Using this as a temp shortcut
+	TSVDriveFileErrorInterpreter
+}
+
+type TSVDriveFileErrorInterpreter struct{}
+
+func (interpreter *TSVDriveFileErrorInterpreter) Interpret(e error) string {
+	cause := errors.Cause(e)
+	switch {
+	case drive.IsCannotCreateFileError(cause):
+		return "Ich kann die Datei in Deinem Google Drive nicht anlegen. Bitte stelle sicher, dass Dein Google Drive mir erlaubt, darauf zuzugreifen."
+	case drive.IsMultipleFilesFoundError(cause):
+		return "Ich habe in Deinem Google Drive mehr als eine Datei mit dem Namen Tagebuch gefunden. Bitte Stelle sicher, dass es nur eine Datei mit diesem Namen gibt."
+	default:
+		return "Genauere Details kann ich aktuell leider nicht herausfinden. Bitte versuche es spaeter noch einmal."
 	}
 }
 
 type DriveSheetJournalProvider struct{ Log *zap.SugaredLogger }
 
-func (jp *DriveSheetJournalProvider) Get(accessToken string) j.Journal {
-	return j.Journal{
-		Data:  drive.NewSheetBasedTabularData(accessToken, "my-journal", "Tagebuch", jp.Log),
-		Index: custom.NewSearchIndex(jp.Log),
+func (jp *DriveSheetJournalProvider) Get(accessToken string) (j.Journal, error) {
+	tabData, e := drive.NewSheetBasedTabularData(accessToken, "Tagebuch", "Tagebuch", jp.Log)
+	if e != nil {
+		return j.Journal{}, e
 	}
+	return j.Journal{
+		Data:  tabData,
+		Index: custom.NewSearchIndex(jp.Log),
+	}, nil
 }
 
 func main() {
@@ -61,8 +94,9 @@ func main() {
 
 	handler := &alexa.Handler{
 		Skill: &JournalSkill{
-			log:             log,
-			journalProvider: &DriveSheetJournalProvider{Log: log},
+			log:              log,
+			journalProvider:  &DriveSheetJournalProvider{Log: log},
+			errorInterpreter: &DriveSheetErrorInterpreter{},
 		},
 		Log: log,
 		ExpectedApplicationID: os.Getenv("APPLICATION_ID"),
@@ -80,8 +114,9 @@ func main() {
 }
 
 type JournalSkill struct {
-	journalProvider j.JournalProvider
-	log             *zap.SugaredLogger
+	journalProvider  JournalProvider
+	errorInterpreter ErrorInterpreter
+	log              *zap.SugaredLogger
 }
 
 const helpText = "Mit diesem Skill kannst Du Tagebucheintraege erstellen oder vorlesen lassen. Sage z.B. \"Neuen Eintrag erstellen\". Oder \"Lies mir den Eintrag von gestern vor\". Oder \"Was war heute vor 20 Jahren?\". Oder \"Was war im August 1994?\"."
@@ -163,12 +198,16 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 		}
 
 	case "IntentRequest":
-		journal := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+		journal, e := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+		if e != nil {
+			log.Errorw("Error while getting journal via journalProvider", "error", e)
+			return plainTextRespEnv(h.errorInterpreter.Interpret(e), requestEnv.Session.Attributes)
+		}
 		log.Debugw("Journal downloaded")
 
 		var sessionAttributes SessionAttributes
 		sessionAttributes.Drafts = make(map[string][]string)
-		e := mapstructure.Decode(requestEnv.Session.Attributes, &sessionAttributes)
+		e = mapstructure.Decode(requestEnv.Session.Attributes, &sessionAttributes)
 		util.PanicOnError(errors.Wrap(e, "Could not parse sessionAttributes"))
 
 		intent := requestEnv.Request.Intent
@@ -306,7 +345,11 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
 			case "COMPLETED":
 				if matched, e := regexp.MatchString(`\d{4}-\d{2}(-XX)?`, intent.Slots["date"].Value); e == nil && matched {
-					entries := journal.GetEntries(intent.Slots["date"].Value[:7])
+					entries, e := journal.GetEntries(intent.Slots["date"].Value[:7])
+					if e != nil {
+						return plainTextRespEnv("Oje. Beim Abrufen der Eintraege ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+							requestEnv.Session.Attributes)
+					}
 					if len(entries) == 0 {
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
@@ -342,7 +385,11 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
 			case "COMPLETED":
 				if matched, e := regexp.MatchString(`\d{4}-\d{2}(-XX)?`, intent.Slots["date"].Value); e == nil && matched {
-					entries := journal.GetEntries(intent.Slots["date"].Value[:7])
+					entries, e := journal.GetEntries(intent.Slots["date"].Value[:7])
+					if e != nil {
+						return plainTextRespEnv("Oje. Beim Abrufen der Eintraege ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+							requestEnv.Session.Attributes)
+					}
 					if len(entries) == 0 {
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
@@ -384,7 +431,11 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				}
 				util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to date", intent.Slots["date"].Value))
 
-				text := journal.GetEntry(entryDate)
+				text, e := journal.GetEntry(entryDate)
+				if e != nil {
+					return plainTextRespEnv("Oje. Beim Abrufen des Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+						requestEnv.Session.Attributes)
+				}
 				if text != "" {
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
@@ -394,7 +445,11 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						SessionAttributes: requestEnv.Session.Attributes,
 					}
 				}
-				closestEntry := journal.GetClosestEntry(entryDate)
+				closestEntry, e := journal.GetClosestEntry(entryDate)
+				if e != nil {
+					return plainTextRespEnv("Oje. Beim Abrufen des Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+						requestEnv.Session.Attributes)
+				}
 				if closestEntry == (j.Entry{}) {
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response:          &alexa.Response{OutputSpeech: plainText(fmt.Sprintf("Dein Tagebuch ist noch leer."))},
@@ -432,7 +487,11 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 					panic(errors.New("Invalid resolution"))
 				}
 
-				text := journal.GetEntry(entryDate)
+				text, e := journal.GetEntry(entryDate)
+				if e != nil {
+					return plainTextRespEnv("Oje. Beim Abrufen des Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+						requestEnv.Session.Attributes)
+				}
 				if text != "" {
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
@@ -442,7 +501,11 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						SessionAttributes: requestEnv.Session.Attributes,
 					}
 				}
-				closestEntry := journal.GetClosestEntry(entryDate)
+				closestEntry, e := journal.GetClosestEntry(entryDate)
+				if e != nil {
+					return plainTextRespEnv("Oje. Beim Abrufen des Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+						requestEnv.Session.Attributes)
+				}
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
 						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v keinen Eintrag gefunden. "+
@@ -455,7 +518,11 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				panic(errors.New("Invalid requestEnv.Request.DialogState"))
 			}
 		case "SearchIntent":
-			entries := journal.SearchFor(intent.Slots["query"].Value)
+			entries, e := journal.SearchFor(intent.Slots["query"].Value)
+			if e != nil {
+				return plainTextRespEnv("Oje. Beim Suchen nach Eintraegen ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+					requestEnv.Session.Attributes)
+			}
 			if len(entries) == 0 {
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
@@ -516,6 +583,13 @@ func plainText(text string) *alexa.OutputSpeech {
 	return &alexa.OutputSpeech{Type: "PlainText", Text: text}
 }
 
+func plainTextRespEnv(text string, attributes map[string]interface{}) *alexa.ResponseEnvelope {
+	return &alexa.ResponseEnvelope{Version: "1.0",
+		Response:          &alexa.Response{OutputSpeech: plainText(text)},
+		SessionAttributes: attributes,
+	}
+}
+
 func pureDelegate(intent *alexa.Intent, sessionAttributes map[string]interface{}) *alexa.ResponseEnvelope {
 	return &alexa.ResponseEnvelope{Version: "1.0",
 		Response: &alexa.Response{
@@ -533,7 +607,7 @@ func pureDelegate(intent *alexa.Intent, sessionAttributes map[string]interface{}
 func internalError() *alexa.ResponseEnvelope {
 	return &alexa.ResponseEnvelope{Version: "1.0",
 		Response: &alexa.Response{
-			OutputSpeech:     plainText("Es ist ein interner Fehler aufgetreten."),
+			OutputSpeech:     plainText("Es ist ein interner Fehler aufgetreten. Bitte versuche es zu einem späteren Zeitpunkt noch einmal."),
 			ShouldSessionEnd: true,
 		},
 	}

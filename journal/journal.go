@@ -1,18 +1,15 @@
 package journal
 
 import (
-	"errors"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/petergtz/alexa-journal/util"
 	"github.com/rickb777/date"
 )
-
-type JournalProvider interface {
-	Get(accessToken string) Journal
-}
 
 type Journal struct {
 	Data  TabularData
@@ -20,9 +17,9 @@ type Journal struct {
 }
 
 type TabularData interface {
-	Rows() [][]string
-	AppendRow(row []string)
-	Empty() bool
+	Rows() ([][]string, error)
+	AppendRow(row []string) error
+	Empty() (bool, error)
 }
 type Index interface {
 	Add(id string, text string)
@@ -51,16 +48,31 @@ func entryFromSlice(parts []string) Entry {
 
 const TimestampFormat = "2006-01-02 15:04:05"
 
-func (j *Journal) AddEntry(entryDate date.Date, text string) {
-	if j.Data.Empty() {
-		j.Data.AppendRow([]string{"timestamp", "date", "text"})
+func (j *Journal) AddEntry(entryDate date.Date, text string) error {
+	empty, e := j.Data.Empty()
+	if e != nil {
+		return errors.Wrap(e, "Could not add entry")
 	}
-	j.Data.AppendRow([]string{time.Now().Format(TimestampFormat), entryDate.String(), text})
+	if empty {
+		e := j.Data.AppendRow([]string{"timestamp", "date", "text"})
+		if e != nil {
+			return errors.Wrap(e, "Could not add entry")
+		}
+	}
+	e = j.Data.AppendRow([]string{time.Now().Format(TimestampFormat), entryDate.String(), text})
+	if e != nil {
+		return errors.Wrap(e, "Could not add entry")
+	}
+	return nil
 }
 
-func (j *Journal) GetEntry(entryDate date.Date) string {
+func (j *Journal) GetEntry(entryDate date.Date) (string, error) {
 	var entriesFound []Entry
-	for _, parts := range j.Data.Rows() {
+	rows, e := j.Data.Rows()
+	if e != nil {
+		return "", errors.Wrap(e, "Could not get entry")
+	}
+	for _, parts := range rows {
 		if len(parts) != 3 {
 			continue
 		}
@@ -80,19 +92,23 @@ func (j *Journal) GetEntry(entryDate date.Date) string {
 	for _, entry := range entriesFound {
 		texts = append(texts, entry.EntryText)
 	}
-	return strings.Join(texts, ". ")
+	return strings.Join(texts, ". "), nil
 }
 
 func ByTimestamp(entriesFound []Entry) func(i, j int) bool {
 	return func(i int, j int) bool { return entriesFound[i].Timestamp.Before(entriesFound[j].Timestamp) }
 }
 
-func (j *Journal) GetClosestEntry(entryDate date.Date) Entry {
+func (j *Journal) GetClosestEntry(entryDate date.Date) (Entry, error) {
 	var closestPositiveEntry, closestNegativeEntry *Entry
 
 	closestPositiveDiff := -(1 << 30)
 	closestNegativeDiff := 1 << 30
-	for _, parts := range j.Data.Rows() {
+	rows, e := j.Data.Rows()
+	if e != nil {
+		return Entry{}, errors.Wrap(e, "Could not get closest entry")
+	}
+	for _, parts := range rows {
 		if len(parts) != 3 {
 			continue
 		}
@@ -106,7 +122,7 @@ func (j *Journal) GetClosestEntry(entryDate date.Date) Entry {
 		diff := entryDate.Sub(d)
 
 		if diff == 0 {
-			return entryFromSlice(parts)
+			return entryFromSlice(parts), nil
 		}
 		if diff > 0 {
 			if int(diff) < closestNegativeDiff {
@@ -124,17 +140,21 @@ func (j *Journal) GetClosestEntry(entryDate date.Date) Entry {
 		}
 	}
 	if closestPositiveEntry != nil {
-		return *closestPositiveEntry
+		return *closestPositiveEntry, nil
 	}
 	if closestNegativeEntry != nil {
-		return *closestNegativeEntry
+		return *closestNegativeEntry, nil
 	}
-	return Entry{}
+	return Entry{}, nil
 }
 
-func (j *Journal) GetEntries(timeRange string) []Entry {
+func (j *Journal) GetEntries(timeRange string) ([]Entry, error) {
 	var result []Entry
-	for _, parts := range j.Data.Rows() {
+	rows, e := j.Data.Rows()
+	if e != nil {
+		return nil, errors.Wrap(e, "Could not get entries")
+	}
+	for _, parts := range rows {
 		if len(parts) != 3 {
 			continue
 		}
@@ -142,12 +162,16 @@ func (j *Journal) GetEntries(timeRange string) []Entry {
 			result = append(result, entryFromSlice(parts))
 		}
 	}
-	return result
+	return result, nil
 }
 
-func (j *Journal) SearchFor(query string) []Entry {
+func (j *Journal) SearchFor(query string) ([]Entry, error) {
 	lookup := make(map[string]string)
-	for _, parts := range j.Data.Rows() {
+	rows, e := j.Data.Rows()
+	if e != nil {
+		return nil, errors.Wrap(e, "Could not get entries")
+	}
+	for _, parts := range rows {
 		if len(parts) != 3 {
 			continue
 		}
@@ -170,7 +194,7 @@ func (j *Journal) SearchFor(query string) []Entry {
 		i++
 	}
 	sort.Slice(result, ByEntryDate(result))
-	return result
+	return result, nil
 }
 
 func ByEntryDate(entries []Entry) func(i, j int) bool {
