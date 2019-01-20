@@ -28,12 +28,15 @@ var _ = Describe("Drive", func() {
 
 	Describe("FileService", func() {
 		It("can download and upload content", func() {
-			fileService := drive.NewFileService(token, "journal-test", log.Sugar())
+			fileService, e := drive.NewFileService(token, "journal-test", log.Sugar())
+			Expect(e).NotTo(HaveOccurred())
 			defer drive.DeleteFile(token, fileService.FileID)
 
-			content := fileService.Download()
+			content, e := fileService.Download()
+			Expect(e).NotTo(HaveOccurred())
 			fileService.Upload(content + "\nanother line here")
-			content2 := fileService.Download()
+			content2, e := fileService.Download()
+			Expect(e).NotTo(HaveOccurred())
 
 			Expect(content2).To(Equal(content + "\nanother line here"))
 		})
@@ -41,11 +44,14 @@ var _ = Describe("Drive", func() {
 
 	Describe("SheetBasedTabularData", func() {
 		It("can append rows and read rows", func() {
-			sheetsService := drive.NewSheetBasedTabularData(token, "journal-test", "my-sheet", log.Sugar())
+			sheetsService, e := drive.NewSheetBasedTabularData(token, "journal-test", "my-sheet", log.Sugar())
+			Expect(e).NotTo(HaveOccurred())
 			defer drive.DeleteFile(token, sheetsService.SpreadsheetID)
 
-			sheetsService.AppendRow([]string{"a", "b", "c"})
-			sheetsService.AppendRow([]string{"d", "e", "f"})
+			e = sheetsService.AppendRow([]string{"a", "b", "c"})
+			Expect(e).NotTo(HaveOccurred())
+			e = sheetsService.AppendRow([]string{"d", "e", "f"})
+			Expect(e).NotTo(HaveOccurred())
 
 			Expect(sheetsService.Rows()).To(Equal([][]string{
 				[]string{"a", "b", "c"},

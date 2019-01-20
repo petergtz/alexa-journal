@@ -48,19 +48,23 @@ var _ = Describe("Journal", func() {
 			journal.AddEntry(date.MustAutoParse("1994-08-20"), "Two")
 			journal.AddEntry(date.MustAutoParse("1994-08-25"), "Three")
 
-			entry := journal.GetClosestEntry(date.MustAutoParse("1994-08-01"))
+			entry, e := journal.GetClosestEntry(date.MustAutoParse("1994-08-01"))
+			Expect(e).NotTo(HaveOccurred())
 			Expect(entry.EntryDate).To(Equal(date.MustAutoParse("1994-08-04")))
 			Expect(entry.EntryText).To(Equal("One"))
 
-			entry = journal.GetClosestEntry(date.MustAutoParse("1994-08-18"))
+			entry, e = journal.GetClosestEntry(date.MustAutoParse("1994-08-18"))
+			Expect(e).NotTo(HaveOccurred())
 			Expect(entry.EntryDate).To(Equal(date.MustAutoParse("1994-08-20")))
 			Expect(entry.EntryText).To(Equal("Two"))
 
-			entry = journal.GetClosestEntry(date.MustAutoParse("1994-08-25"))
+			entry, e = journal.GetClosestEntry(date.MustAutoParse("1994-08-25"))
+			Expect(e).NotTo(HaveOccurred())
 			Expect(entry.EntryDate).To(Equal(date.MustAutoParse("1994-08-25")))
 			Expect(entry.EntryText).To(Equal("Three"))
 
-			entry = journal.GetClosestEntry(date.MustAutoParse("1994-08-27"))
+			entry, e = journal.GetClosestEntry(date.MustAutoParse("1994-08-27"))
+			Expect(e).NotTo(HaveOccurred())
 			Expect(entry.EntryDate).To(Equal(date.MustAutoParse("1994-08-25")))
 			Expect(entry.EntryText).To(Equal("Three"))
 		})
