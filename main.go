@@ -20,7 +20,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rickb777/date"
 
-	"github.com/petergtz/go-alexa"
+	alexa "github.com/petergtz/go-alexa"
 	"go.uber.org/zap"
 )
 
@@ -99,7 +99,7 @@ func main() {
 			journalProvider:  &DriveSheetJournalProvider{Log: log},
 			errorInterpreter: &DriveSheetErrorInterpreter{},
 		},
-		Log: log,
+		Log:                   log,
 		ExpectedApplicationID: os.Getenv("APPLICATION_ID"),
 	}
 	http.HandleFunc("/", handler.Handle)
