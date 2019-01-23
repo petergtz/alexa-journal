@@ -256,6 +256,22 @@
                     ]
                 },
                 {
+                    "name": "SearchIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "query",
+                            "type": "AMAZON.SearchQuery",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.918336650218.344852474828"
+                            }
+                        }
+                    ]
+                },
+                {
                     "name": "DeleteEntryIntent",
                     "confirmationRequired": false,
                     "prompts": {},
@@ -383,6 +399,15 @@
                     {
                         "type": "PlainText",
                         "value": "Von welchem Datum soll ich einen Eintrag vorlesen?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.918336650218.344852474828",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Nach was soll ich suchen?"
                     }
                 ]
             },
