@@ -14,7 +14,6 @@ import (
 
 	"github.com/petergtz/alexa-journal/drive"
 	j "github.com/petergtz/alexa-journal/journal"
-	"github.com/petergtz/alexa-journal/tsv"
 	"github.com/petergtz/alexa-journal/util"
 
 	"github.com/mitchellh/mapstructure"
@@ -37,20 +36,20 @@ type ErrorInterpreter interface {
 	Interpret(error) string
 }
 
-type TSVDriveFileJournalProvider struct {
-	Log *zap.SugaredLogger
-}
+// type TSVDriveFileJournalProvider struct {
+// 	Log *zap.SugaredLogger
+// }
 
-func (jp *TSVDriveFileJournalProvider) Get(accessToken string) (j.Journal, error) {
-	fileService, e := drive.NewFileService(accessToken, "Tagebuch.tsv", jp.Log)
-	if e != nil {
-		return j.Journal{}, e
-	}
-	return j.Journal{
-		Data:  &tsv.TextFileBackedTabularData{TextFileLoader: fileService},
-		Index: custom.NewSearchIndex(jp.Log),
-	}, nil
-}
+// func (jp *TSVDriveFileJournalProvider) Get(accessToken string) (j.Journal, error) {
+// 	fileService, e := drive.NewFileService(accessToken, "Tagebuch.tsv", jp.Log)
+// 	if e != nil {
+// 		return j.Journal{}, e
+// 	}
+// 	return j.Journal{
+// 		Data:  &tsv.TextFileBackedTabularData{TextFileLoader: fileService},
+// 		Index: custom.NewSearchIndex(jp.Log),
+// 	}, nil
+// }
 
 type DriveSheetErrorInterpreter struct {
 	// Using this as a temp shortcut
@@ -66,6 +65,8 @@ func (interpreter *TSVDriveFileErrorInterpreter) Interpret(e error) string {
 		return "Ich kann die Datei in Deinem Google Drive nicht anlegen. Bitte stelle sicher, dass Dein Google Drive mir erlaubt, darauf zuzugreifen."
 	case drive.IsMultipleFilesFoundError(cause):
 		return "Ich habe in Deinem Google Drive mehr als eine Datei mit dem Namen Tagebuch gefunden. Bitte Stelle sicher, dass es nur eine Datei mit diesem Namen gibt."
+	case drive.IsSheetNotFoundError(cause):
+		return "Ich habe in Deinem Spreadsheet kein Tabellenblatt mit dem Namen Tagebuch gefunden. Bitte stelle sicher, dass dies existiert."
 	default:
 		return "Genauere Details kann ich aktuell leider nicht herausfinden. Bitte versuche es spaeter noch einmal."
 	}
@@ -541,6 +542,54 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				},
 				SessionAttributes: requestEnv.Session.Attributes,
 			}
+		case "DeleteEntryIntent":
+			switch requestEnv.Request.DialogState {
+			case "STARTED":
+				return pureDelegate(&intent, requestEnv.Session.Attributes)
+			case "IN_PROGRESS":
+				switch intent.ConfirmationStatus {
+				case "NONE":
+					if intent.Slots["date"].Value == "" {
+						return pureDelegate(&intent, requestEnv.Session.Attributes)
+					}
+					date, e := date.AutoParse(intent.Slots["date"].Value)
+					util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to date", intent.Slots["date"].Value))
+
+					entry, e := journal.GetEntry(date)
+					if e != nil {
+						return plainTextRespEnv("Oje. Beim Aufrufen des zu loeschenden Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+							requestEnv.Session.Attributes)
+					}
+					if entry == "" {
+						return plainTextRespEnv("Hm. Zu diesem Datum habe ich leider keinen Eintrag gefunden.", requestEnv.Session.Attributes)
+					}
+					return &alexa.ResponseEnvelope{Version: "1.0",
+						Response: &alexa.Response{
+							OutputSpeech: plainText("Du moechtest den folgenden Eintrag loeschen: " + entry + ". Soll ich ihn wirklich loeschen?"),
+							Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ConfirmIntent", UpdatedIntent: &intent}},
+						},
+						SessionAttributes: requestEnv.Session.Attributes,
+					}
+				case "CONFIRMED":
+					date, e := date.AutoParse(intent.Slots["date"].Value)
+					util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to date", intent.Slots["date"].Value))
+
+					e = journal.DeleteEntry(date)
+					if e != nil {
+						return plainTextRespEnv("Oje. Beim Loeschen des Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+							requestEnv.Session.Attributes)
+					}
+
+					return plainTextRespEnv("Okay. Geloescht.", requestEnv.Session.Attributes)
+				case "DENIED":
+					return plainTextRespEnv("Okay. Nicht geloescht.", requestEnv.Session.Attributes)
+				default:
+					panic(errors.New("Invalid intent.ConfirmationStatus"))
+				}
+			default:
+				panic(errors.New("Invalid requestEnv.Request.DialogState"))
+			}
+
 		case "AMAZON.HelpIntent":
 			return &alexa.ResponseEnvelope{Version: "1.0",
 				Response:          &alexa.Response{OutputSpeech: plainText(helpText)},

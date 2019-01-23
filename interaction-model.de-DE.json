@@ -129,6 +129,21 @@
                     "samples": [
                         "Suche nach {query}"
                     ]
+                },
+                {
+                    "name": "DeleteEntryIntent",
+                    "slots": [
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE"
+                        }
+                    ],
+                    "samples": [
+                        "Tagebucheintrag vom {date} löschen",
+                        "Tagebucheintrag löschen",
+                        "Eintrag vom {date} löschen",
+                        "Eintrag löschen"
+                    ]
                 }
             ],
             "types": [
@@ -237,6 +252,22 @@
                             "confirmationRequired": false,
                             "elicitationRequired": false,
                             "prompts": {}
+                        }
+                    ]
+                },
+                {
+                    "name": "DeleteEntryIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.277245929653.1204341499134"
+                            }
                         }
                     ]
                 }
@@ -352,6 +383,15 @@
                     {
                         "type": "PlainText",
                         "value": "Von welchem Datum soll ich einen Eintrag vorlesen?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.277245929653.1204341499134",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Zu welchem Datum?"
                     }
                 ]
             }

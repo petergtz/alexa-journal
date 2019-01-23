@@ -20,6 +20,7 @@ type TabularData interface {
 	Rows() ([][]string, error)
 	AppendRow(row []string) error
 	Empty() (bool, error)
+	DeleteRow(rowNum int) error
 }
 type Index interface {
 	Add(id string, text string)
@@ -97,6 +98,32 @@ func (j *Journal) GetEntry(entryDate date.Date) (string, error) {
 
 func ByTimestamp(entriesFound []Entry) func(i, j int) bool {
 	return func(i int, j int) bool { return entriesFound[i].Timestamp.Before(entriesFound[j].Timestamp) }
+}
+
+func (j *Journal) DeleteEntry(entryDate date.Date) error {
+	rows, e := j.Data.Rows()
+	if e != nil {
+		return errors.Wrap(e, "Could not get data rows")
+	}
+	for i, parts := range rows {
+		if len(parts) != 3 {
+			continue
+		}
+		if parts[1] == "" {
+			continue
+		}
+		d, e := date.AutoParse(parts[1])
+		if e != nil {
+			continue
+		}
+		if d == entryDate {
+			e := j.Data.DeleteRow(i)
+			if e != nil {
+				return errors.Wrapf(e, "Could not delete row %v in data", i)
+			}
+		}
+	}
+	return nil
 }
 
 func (j *Journal) GetClosestEntry(entryDate date.Date) (Entry, error) {

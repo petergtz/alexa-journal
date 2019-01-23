@@ -21,3 +21,13 @@ func IsMultipleFilesFoundError(e error) bool {
 	_, is := e.(*MultipleFilesFoundError)
 	return is
 }
+
+type SheetNotFoundError struct{ error }
+
+func NewSheetNotFoundError(sheetsTitle string) *SheetNotFoundError {
+	return &SheetNotFoundError{errors.Errorf("SheetNotFoundError. sheetTitle: %v", sheetsTitle)}
+}
+func IsSheetNotFoundError(e error) bool {
+	_, is := e.(*SheetNotFoundError)
+	return is
+}

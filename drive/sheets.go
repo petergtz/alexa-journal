@@ -97,3 +97,40 @@ func (td *SheetBasedTabularData) Empty() (bool, error) {
 	}
 	return len(resp.Values) == 0, nil
 }
+
+func (td *SheetBasedTabularData) DeleteRow(rowNum int) error {
+	td.Log.Debugw("DeleteRow", "row-num", rowNum)
+	resp, e := td.Service.Spreadsheets.Get(td.SpreadsheetID).Fields("sheets.properties").Do()
+	if e != nil {
+		return errors.Wrapf(e, "Could not get sheets properties")
+	}
+	var sheetID int64 = -1
+	for _, sheet := range resp.Sheets {
+		if sheet.Properties.Title == td.sheetTitle {
+			sheetID = sheet.Properties.SheetId
+			break
+		}
+	}
+	if sheetID == -1 {
+		return NewSheetNotFoundError(td.sheetTitle)
+	}
+	td.Log.Debugw("DeleteRow", "sheet-id", sheetID)
+	_, e = td.Service.Spreadsheets.BatchUpdate(td.SpreadsheetID, &sheets.BatchUpdateSpreadsheetRequest{
+		Requests: []*sheets.Request{
+			&sheets.Request{
+				DeleteDimension: &sheets.DeleteDimensionRequest{
+					Range: &sheets.DimensionRange{
+						SheetId:    sheetID,
+						Dimension:  "ROWS",
+						StartIndex: int64(rowNum),
+						EndIndex:   int64(rowNum + 1),
+					},
+				},
+			},
+		},
+	}).Do()
+	if e != nil {
+		return errors.Wrapf(e, "Could not delete row %v", rowNum)
+	}
+	return nil
+}
