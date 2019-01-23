@@ -53,6 +53,7 @@
                         }
                     ],
                     "samples": [
+                        "Was war {date} {year}",
                         "Lies den Eintrag von {date} vor",
                         "Lese einen Eintrag vor",
                         "Lies einen Eintrag vor",
