@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/petergtz/alexa-journal/github"
+
 	"github.com/petergtz/alexa-journal/search/custom"
 
 	"github.com/petergtz/alexa-journal/drive"
@@ -98,6 +100,7 @@ func main() {
 			log:              log,
 			journalProvider:  &DriveSheetJournalProvider{Log: log},
 			errorInterpreter: &DriveSheetErrorInterpreter{},
+			errorReporter:    github.NewGithubErrorReporter("petergtz", "alexa-journal", os.Getenv("GITHUB_TOKEN"), log),
 		},
 		Log:                   log,
 		ExpectedApplicationID: os.Getenv("APPLICATION_ID"),
@@ -118,6 +121,7 @@ type JournalSkill struct {
 	journalProvider  JournalProvider
 	errorInterpreter ErrorInterpreter
 	log              *zap.SugaredLogger
+	errorReporter    *github.GithubErrorReporter
 }
 
 const helpText = "Mit diesem Skill kannst Du Tagebucheintraege erstellen oder vorlesen lassen. Sage z.B. \"Neuen Eintrag erstellen\". Oder \"Lies mir den Eintrag von gestern vor\". Oder \"Was war heute vor 20 Jahren?\". Oder \"Was war im August 1994?\"."
@@ -170,7 +174,7 @@ type SessionAttributes struct {
 func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (responseEnv *alexa.ResponseEnvelope) {
 	defer func() {
 		if e := recover(); e != nil {
-			h.log.Errorw("Internal Server Error.", "error", fmt.Sprintf("%+v", e))
+			h.errorReporter.ReportError("Internal Server Error.", e.(error))
 			responseEnv = internalError()
 		}
 	}()

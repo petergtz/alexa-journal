@@ -1,10 +1,18 @@
-hash: aa2297e9f92398a8c851f001c9c092102d691c2caf0d6c7b8ab181e7c7e618e6
-updated: 2018-12-31T01:25:42.893684+01:00
+hash: 06856b6ffdd0f907baddf4d70e89daa873b5df844bb1b31a3177cd9d580d004e
+updated: 2019-02-23T21:41:03.527527+01:00
 imports:
 - name: github.com/golang/protobuf
   version: 1918e1ff6ffd2be7bed0553df8650672c3bfe80d
   subpackages:
   - proto
+- name: github.com/google/go-github
+  version: 1c3f0aaee1ce742b655f1ba8f33740103e904c5c
+  subpackages:
+  - github
+- name: github.com/google/go-querystring
+  version: 44c6ddd0a2342c386950e880b658017258da92fc
+  subpackages:
+  - query
 - name: github.com/mitchellh/mapstructure
   version: 3536a929edddb9a5b34bd6861dc4a9647cb459fe
 - name: github.com/onsi/ginkgo
@@ -89,6 +97,7 @@ imports:
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
+  - sheets/v4
 - name: google.golang.org/appengine
   version: 4a4468ece617fc8205e99368fa2200e9d1fad421
   subpackages:
@@ -107,10 +116,6 @@ testImports:
   - util
   - watch
   - winfile
-- name: github.com/petergtz/pegomock
-  version: 9750219ad78bfad9ba455ed537b518397a675228
-  subpackages:
-  - internal/verify
 - name: golang.org/x/sys
   version: 9b800f95dbbc54abff0acf7ee32d88ba4e328c89
   subpackages:
