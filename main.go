@@ -30,6 +30,8 @@ var (
 	log *zap.SugaredLogger
 )
 
+const responseTextLimit = 8000
+
 type JournalProvider interface {
 	Get(accessToken string) (j.Journal, error)
 }
@@ -536,14 +538,17 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
 			}
-			var tuples []string
+			text := fmt.Sprintf("Hier sind die Ergebnisse für die Suche \"%v\": ", intent.Slots["query"].Value)
 			for _, entry := range entries {
-				tuples = append(tuples, weekdays[entry.EntryDate.Weekday().String()]+", "+entry.EntryDate.String()+": "+entry.EntryText)
+
+				tuple := weekdays[entry.EntryDate.Weekday().String()] + ", " + entry.EntryDate.String() + ": " + strings.TrimRight(entry.EntryText, ". ") + ". "
+				if len(text)+len(tuple) > responseTextLimit {
+					break
+				}
+				text += tuple
 			}
 			return &alexa.ResponseEnvelope{Version: "1.0",
-				Response: &alexa.Response{
-					OutputSpeech: plainText(fmt.Sprintf("Hier sind die Ergebnisse für die Suche \"%v\": %v", intent.Slots["query"].Value, strings.Join(tuples, ". "))),
-				},
+				Response:          &alexa.Response{OutputSpeech: plainText(text)},
 				SessionAttributes: requestEnv.Session.Attributes,
 			}
 		case "DeleteEntryIntent":
