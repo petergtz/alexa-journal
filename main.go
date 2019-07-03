@@ -459,14 +459,14 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				}
 				if closestEntry == (j.Entry{}) {
 					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response:          &alexa.Response{OutputSpeech: plainText(fmt.Sprintf("Dein Tagebuch ist noch leer."))},
+						Response:          &alexa.Response{OutputSpeech: plainText(fmt.Sprintf("Dein Tagebuch ist noch leer. Was möchtest als nächstes in Deinem Tagebuch machen?"))},
 						SessionAttributes: requestEnv.Session.Attributes,
 					}
 				}
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
 						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v keinen Eintrag gefunden. "+
-							"Der nächste Eintrag ist vom %v, %v. Er lautet: %v.",
+							"Der nächste Eintrag ist vom %v, %v. Er lautet: %v. Was möchtest als nächstes in Deinem Tagebuch machen?",
 							entryDate, weekdays[closestEntry.EntryDate.Weekday().String()], closestEntry.EntryDate, closestEntry.EntryText)),
 					},
 					SessionAttributes: requestEnv.Session.Attributes,
@@ -535,7 +535,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			if len(entries) == 0 {
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für die Suche \"%v\" gefunden.", intent.Slots["query"].Value)),
+						OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für die Suche \"%v\" gefunden. Was möchtest als nächstes in Deinem Tagebuch machen?", intent.Slots["query"].Value)),
 					},
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
