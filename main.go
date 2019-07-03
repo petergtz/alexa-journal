@@ -475,54 +475,56 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				panic(errors.New("Invalid requestEnv.Request.DialogState"))
 			}
 		case "ReadExistingEntryRelativeDateIntent":
-			switch requestEnv.Request.DialogState {
-			case "STARTED", "IN_PROGRESS":
-				return pureDelegate(&intent, requestEnv.Session.Attributes)
-			case "COMPLETED":
-				today := date.NewAt(time.Now())
-				x, e := strconv.Atoi(intent.Slots["number"].Value)
-				util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to date", intent.Slots["date"].Value))
-				var entryDate date.Date
-				switch intent.Slots["unit"].Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID {
-				case "DAYS":
-					entryDate = today.AddDate(0, 0, -x)
-				case "MONTHS":
-					entryDate = today.AddDate(0, -x, 0)
-				case "YEARS":
-					entryDate = today.AddDate(-x, 0, 0)
-				default:
-					panic(errors.New("Invalid resolution"))
-				}
-
-				text, e := journal.GetEntry(entryDate)
-				if e != nil {
-					return plainTextRespEnv("Oje. Beim Abrufen des Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
-						requestEnv.Session.Attributes)
-				}
-				if text != "" {
-					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response: &alexa.Response{
-							OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v, %v: %v.",
-								weekdays[entryDate.Weekday().String()], entryDate, text)),
-						},
-						SessionAttributes: requestEnv.Session.Attributes,
-					}
-				}
-				closestEntry, e := journal.GetClosestEntry(entryDate)
-				if e != nil {
-					return plainTextRespEnv("Oje. Beim Abrufen des Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
-						requestEnv.Session.Attributes)
-				}
+			today := date.NewAt(time.Now())
+			x, e := strconv.Atoi(intent.Slots["number"].Value)
+			util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to number", intent.Slots["number"].Value))
+			var entryDate date.Date
+			if intent.Slots["unit"].Resolutions.ResolutionsPerAuthority[0].Status["code"] == "ER_SUCCESS_NO_MATCH" {
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v keinen Eintrag gefunden. "+
-							"Der nächste Eintrag ist vom %v, %v. Er lautet: %v.",
-							entryDate, weekdays[closestEntry.EntryDate.Weekday().String()], closestEntry.EntryDate, closestEntry.EntryText)),
+						OutputSpeech: plainText("Das habe ich leider nicht verstanden. Kannst du es bitte noch einmal versuchen?"),
+						Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "unit"}},
+					},
+					SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
+				}
+			}
+			switch intent.Slots["unit"].Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID {
+			case "DAYS":
+				entryDate = today.AddDate(0, 0, -x)
+			case "MONTHS":
+				entryDate = today.AddDate(0, -x, 0)
+			case "YEARS":
+				entryDate = today.AddDate(-x, 0, 0)
+			default:
+				panic(errors.New("Invalid resolution"))
+			}
+
+			text, e := journal.GetEntry(entryDate)
+			if e != nil {
+				return plainTextRespEnv("Oje. Beim Abrufen des Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+					requestEnv.Session.Attributes)
+			}
+			if text != "" {
+				return &alexa.ResponseEnvelope{Version: "1.0",
+					Response: &alexa.Response{
+						OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v, %v: %v.",
+							weekdays[entryDate.Weekday().String()], entryDate, text)),
 					},
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
-			default:
-				panic(errors.New("Invalid requestEnv.Request.DialogState"))
+			}
+			closestEntry, e := journal.GetClosestEntry(entryDate)
+			if e != nil {
+				return plainTextRespEnv("Oje. Beim Abrufen des Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
+					requestEnv.Session.Attributes)
+			}
+			return &alexa.ResponseEnvelope{Version: "1.0",
+				Response: &alexa.Response{
+					OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v keinen Eintrag gefunden. "+
+						"Der nächste Eintrag ist vom %v, %v. Er lautet: %v.",
+						entryDate, weekdays[closestEntry.EntryDate.Weekday().String()], closestEntry.EntryDate, closestEntry.EntryText)),
+				},
+				SessionAttributes: requestEnv.Session.Attributes,
 			}
 		case "SearchIntent":
 			entries, e := journal.SearchFor(intent.Slots["query"].Value)

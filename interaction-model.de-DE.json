@@ -24,7 +24,10 @@
                         },
                         {
                             "name": "text",
-                            "type": "AMAZON.SearchQuery"
+                            "type": "AMAZON.SearchQuery",
+                            "samples": [
+                                "{text}"
+                            ]
                         }
                     ],
                     "samples": [
@@ -237,6 +240,7 @@
                 },
                 {
                     "name": "ReadExistingEntryRelativeDateIntent",
+                    "delegationStrategy": "ALWAYS",
                     "confirmationRequired": false,
                     "prompts": {},
                     "slots": [
@@ -244,15 +248,19 @@
                             "name": "number",
                             "type": "AMAZON.NUMBER",
                             "confirmationRequired": false,
-                            "elicitationRequired": false,
-                            "prompts": {}
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.922944218520.1497640595622"
+                            }
                         },
                         {
                             "name": "unit",
                             "type": "Unit",
                             "confirmationRequired": false,
-                            "elicitationRequired": false,
-                            "prompts": {}
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.922944218520.834212133831"
+                            }
                         }
                     ]
                 },
@@ -419,6 +427,24 @@
                     {
                         "type": "PlainText",
                         "value": "Zu welchem Datum?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.922944218520.834212133831",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Das habe ich leider nicht verstanden. Kannst Du es bitte wiederholen?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.922944218520.1497640595622",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "Das habe ich leider nicht verstanden. Kannst Du es bitte wiederholen?"
                     }
                 ]
             }
