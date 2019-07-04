@@ -307,7 +307,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						if len(sessionAttributes.Drafts[intent.Slots["date"].Value]) == 0 {
 							sessionAttributes.Drafting = false
 							return &alexa.ResponseEnvelope{Version: "1.0",
-								Response:          &alexa.Response{OutputSpeech: plainText("Dein Eintrag ist leer. Es gibt nichts zu speichern.")},
+								Response:          &alexa.Response{OutputSpeech: plainText("Dein Eintrag ist leer. Es gibt nichts zu speichern. Was möchtest Du als nächstes tun?")},
 								SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 							}
 						}
@@ -379,7 +379,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				}
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText(fmt.Sprintf("Ich habe Dich nicht richtig verstanden.")),
+						OutputSpeech: plainText(fmt.Sprintf("Ich habe Dich nicht richtig verstanden. Kannst Du es bitte noch einmal versuchen?")),
 					},
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
@@ -446,7 +446,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				if text != "" {
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
-							OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v, %v: %v.",
+							OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v, %v: %v.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?",
 								weekdays[entryDate.Weekday().String()], entryDate, text)),
 						},
 						SessionAttributes: requestEnv.Session.Attributes,
@@ -459,14 +459,14 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				}
 				if closestEntry == (j.Entry{}) {
 					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response:          &alexa.Response{OutputSpeech: plainText(fmt.Sprintf("Dein Tagebuch ist noch leer. Was möchtest als nächstes in Deinem Tagebuch machen?"))},
+						Response:          &alexa.Response{OutputSpeech: plainText(fmt.Sprintf("Dein Tagebuch ist noch leer.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen? Sage z.B. neuen Eintrag erstellen."))},
 						SessionAttributes: requestEnv.Session.Attributes,
 					}
 				}
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
 						OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v keinen Eintrag gefunden. "+
-							"Der nächste Eintrag ist vom %v, %v. Er lautet: %v. Was möchtest als nächstes in Deinem Tagebuch machen?",
+							"Der nächste Eintrag ist vom %v, %v. Er lautet: %v.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?",
 							entryDate, weekdays[closestEntry.EntryDate.Weekday().String()], closestEntry.EntryDate, closestEntry.EntryText)),
 					},
 					SessionAttributes: requestEnv.Session.Attributes,
@@ -477,17 +477,17 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 		case "ReadExistingEntryRelativeDateIntent":
 			today := date.NewAt(time.Now())
 			x, e := strconv.Atoi(intent.Slots["number"].Value)
-			util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to number", intent.Slots["number"].Value))
-			var entryDate date.Date
-			if intent.Slots["unit"].Resolutions.ResolutionsPerAuthority[0].Status["code"] == "ER_SUCCESS_NO_MATCH" {
+			if e != nil ||
+				intent.Slots["unit"].Resolutions.ResolutionsPerAuthority[0].Status["code"] == "ER_SUCCESS_NO_MATCH" {
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText("Das habe ich leider nicht verstanden. Kannst du es bitte noch einmal versuchen?"),
+						OutputSpeech: plainText("Das habe ich leider nicht verstanden. Kannst du es bitte noch einmal versuchen? Sage z.B. was war heute vor einem Jahr?"),
 						Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "unit"}},
 					},
 					SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 				}
 			}
+			var entryDate date.Date
 			switch intent.Slots["unit"].Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID {
 			case "DAYS":
 				entryDate = today.AddDate(0, 0, -x)
@@ -507,7 +507,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			if text != "" {
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v, %v: %v.",
+						OutputSpeech: plainText(fmt.Sprintf("Hier ist der Eintrag vom %v, %v: %v.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?",
 							weekdays[entryDate.Weekday().String()], entryDate, text)),
 					},
 					SessionAttributes: requestEnv.Session.Attributes,
@@ -518,10 +518,16 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				return plainTextRespEnv("Oje. Beim Abrufen des Eintrags ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
 					requestEnv.Session.Attributes)
 			}
+			if closestEntry == (j.Entry{}) {
+				return &alexa.ResponseEnvelope{Version: "1.0",
+					Response:          &alexa.Response{OutputSpeech: plainText(fmt.Sprintf("Dein Tagebuch ist noch leer.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen? Sage z.B. neuen Eintrag erstellen."))},
+					SessionAttributes: requestEnv.Session.Attributes,
+				}
+			}
 			return &alexa.ResponseEnvelope{Version: "1.0",
 				Response: &alexa.Response{
 					OutputSpeech: plainText(fmt.Sprintf("Ich habe fuer den %v keinen Eintrag gefunden. "+
-						"Der nächste Eintrag ist vom %v, %v. Er lautet: %v.",
+						"Der nächste Eintrag ist vom %v, %v. Er lautet: %v.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?",
 						entryDate, weekdays[closestEntry.EntryDate.Weekday().String()], closestEntry.EntryDate, closestEntry.EntryText)),
 				},
 				SessionAttributes: requestEnv.Session.Attributes,
@@ -535,7 +541,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			if len(entries) == 0 {
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für die Suche \"%v\" gefunden. Was möchtest als nächstes in Deinem Tagebuch machen?", intent.Slots["query"].Value)),
+						OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für die Suche \"%v\" gefunden.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?", intent.Slots["query"].Value)),
 					},
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
@@ -667,7 +673,7 @@ func pureDelegate(intent *alexa.Intent, sessionAttributes map[string]interface{}
 func internalError() *alexa.ResponseEnvelope {
 	return &alexa.ResponseEnvelope{Version: "1.0",
 		Response: &alexa.Response{
-			OutputSpeech:     plainText("Es ist ein interner Fehler aufgetreten. Bitte versuche es zu einem späteren Zeitpunkt noch einmal."),
+			OutputSpeech:     plainText("Es ist ein interner Fehler aufgetreten. Ich habe den Entwickler bereits informiert, er wird sich um das Problem kümmern. Bitte versuche es zu einem späteren Zeitpunkt noch einmal."),
 			ShouldSessionEnd: true,
 		},
 	}

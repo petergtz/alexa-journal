@@ -35,8 +35,9 @@ func (r *GithubErrorReporter) ReportError(message string, e error) {
 	errorID := rand.Int63()
 
 	issue, _, ghErr := r.ghClient.Issues.Create(r.ctx, r.owner, r.repo, &github.IssueRequest{
-		Title: github.String(message),
-		Body:  github.String(fmt.Sprintf("An error occurred and it can be found by grepping the logs for `%v`", errorID)),
+		Title:    github.String(message),
+		Body:     github.String(fmt.Sprintf("An error occurred and it can be found by grepping the logs for `%v`", errorID)),
+		Assignee: github.String("petergtz"),
 	})
 	if ghErr != nil {
 		r.logger.Errorw("Error while trying to report error with message: "+message, "original-error", e, "github-error", ghErr)
