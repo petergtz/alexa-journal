@@ -330,14 +330,14 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 					delete(sessionAttributes.Drafts, intent.Slots["date"].Value)
 
 					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response:          &alexa.Response{OutputSpeech: plainText("Okay. Gespeichert.")},
+						Response:          &alexa.Response{OutputSpeech: plainText("Okay. Gespeichert.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")},
 						SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 					}
 
 				case "DENIED":
 					sessionAttributes.Drafting = false
 					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response:          &alexa.Response{OutputSpeech: plainText("Okay. Nicht gespeichert.")},
+						Response:          &alexa.Response{OutputSpeech: plainText("Okay. Nicht gespeichert.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")},
 						SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 					}
 				default:
@@ -400,7 +400,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 					if len(entries) == 0 {
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
-								OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + " gefunden.")),
+								OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + " gefunden.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")),
 							},
 							SessionAttributes: requestEnv.Session.Attributes,
 						}
@@ -412,14 +412,14 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
 							OutputSpeech: plainText(fmt.Sprintf("Hier sind die Einträge für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + ": " +
-								strings.Join(tuples, ". "))),
+								strings.Join(tuples, ". ") + "\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")),
 						},
 						SessionAttributes: requestEnv.Session.Attributes,
 					}
 				}
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText(fmt.Sprintf("Ich habe Dich nicht richtig verstanden.")),
+						OutputSpeech: plainText(fmt.Sprintf("Ich habe Dich nicht richtig verstanden. Bitte versuche es noch einmal.")),
 					},
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
@@ -556,7 +556,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				text += tuple
 			}
 			return &alexa.ResponseEnvelope{Version: "1.0",
-				Response:          &alexa.Response{OutputSpeech: plainText(text)},
+				Response:          &alexa.Response{OutputSpeech: plainText(text + "\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")},
 				SessionAttributes: requestEnv.Session.Attributes,
 			}
 		case "DeleteEntryIntent":
@@ -597,9 +597,9 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							requestEnv.Session.Attributes)
 					}
 
-					return plainTextRespEnv("Okay. Geloescht.", requestEnv.Session.Attributes)
+					return plainTextRespEnv("Okay. Geloescht.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?", requestEnv.Session.Attributes)
 				case "DENIED":
-					return plainTextRespEnv("Okay. Nicht geloescht.", requestEnv.Session.Attributes)
+					return plainTextRespEnv("Okay. Nicht geloescht.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?", requestEnv.Session.Attributes)
 				default:
 					panic(errors.New("Invalid intent.ConfirmationStatus"))
 				}
@@ -627,7 +627,6 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 	default:
 		panic(errors.New("Invalid Request"))
 	}
-	return nil // dummy return to satisfy compiler
 }
 
 func readableStringFrom(dateLike string) string {
