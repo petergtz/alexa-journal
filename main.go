@@ -590,7 +590,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 }
 
 func listAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttributes map[string]interface{}, errorInterpreter ErrorInterpreter) (responseEnv *alexa.ResponseEnvelope, handled bool) {
-	if matched, e := regexp.MatchString(`\d{4}-\d{2}(-XX)?`, dateSlotValue); e == nil && matched {
+	if matched, e := regexp.MatchString(`^\d{4}-\d{2}(-XX)?$`, dateSlotValue); e == nil && matched {
 		entries, e := journal.GetEntries(dateSlotValue[:7])
 		if e != nil {
 			return plainTextRespEnv("Oje. Beim Abrufen der Eintraege ist ein Fehler aufgetreten. "+errorInterpreter.Interpret(e),
@@ -623,7 +623,7 @@ func listAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttri
 }
 
 func readAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttributes map[string]interface{}, errorInterpreter ErrorInterpreter) (responseEnv *alexa.ResponseEnvelope, handled bool) {
-	if matched, e := regexp.MatchString(`\d{4}-\d{2}(-XX)?`, dateSlotValue); e == nil && matched {
+	if matched, e := regexp.MatchString(`^\d{4}-\d{2}(-XX)?$`, dateSlotValue); e == nil && matched {
 		entries, e := journal.GetEntries(dateSlotValue[:7])
 		if e != nil {
 			return plainTextRespEnv("Oje. Beim Abrufen der Eintraege ist ein Fehler aufgetreten. "+errorInterpreter.Interpret(e),
