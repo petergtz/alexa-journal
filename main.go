@@ -351,31 +351,9 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			case "STARTED", "IN_PROGRESS":
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
 			case "COMPLETED":
-				if matched, e := regexp.MatchString(`\d{4}-\d{2}(-XX)?`, intent.Slots["date"].Value); e == nil && matched {
-					entries, e := journal.GetEntries(intent.Slots["date"].Value[:7])
-					if e != nil {
-						return plainTextRespEnv("Oje. Beim Abrufen der Eintraege ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
-							requestEnv.Session.Attributes)
-					}
-					if len(entries) == 0 {
-						return &alexa.ResponseEnvelope{Version: "1.0",
-							Response: &alexa.Response{
-								OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + " gefunden.")),
-							},
-							SessionAttributes: requestEnv.Session.Attributes,
-						}
-					}
-					var dates []string
-					for _, entry := range entries {
-						dates = append(dates, entry.EntryDate.String())
-					}
-					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response: &alexa.Response{
-							OutputSpeech: plainText(fmt.Sprintf("Folgende Einträge habe ich für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + " gefunden: " +
-								strings.Join(dates, ". "))),
-						},
-						SessionAttributes: requestEnv.Session.Attributes,
-					}
+				responseEnv, handled := listAllEntriesInDate(&journal, intent.Slots["date"].Value, requestEnv.Session.Attributes, h.errorInterpreter)
+				if handled {
+					return responseEnv
 				}
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
@@ -391,31 +369,9 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			case "STARTED", "IN_PROGRESS":
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
 			case "COMPLETED":
-				if matched, e := regexp.MatchString(`\d{4}-\d{2}(-XX)?`, intent.Slots["date"].Value); e == nil && matched {
-					entries, e := journal.GetEntries(intent.Slots["date"].Value[:7])
-					if e != nil {
-						return plainTextRespEnv("Oje. Beim Abrufen der Eintraege ist ein Fehler aufgetreten. "+h.errorInterpreter.Interpret(e),
-							requestEnv.Session.Attributes)
-					}
-					if len(entries) == 0 {
-						return &alexa.ResponseEnvelope{Version: "1.0",
-							Response: &alexa.Response{
-								OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + " gefunden.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")),
-							},
-							SessionAttributes: requestEnv.Session.Attributes,
-						}
-					}
-					var tuples []string
-					for _, entry := range entries {
-						tuples = append(tuples, weekdays[entry.EntryDate.Weekday().String()]+", "+entry.EntryDate.String()+": "+entry.EntryText)
-					}
-					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response: &alexa.Response{
-							OutputSpeech: plainText(fmt.Sprintf("Hier sind die Einträge für den Zeitraum " + readableStringFrom(intent.Slots["date"].Value) + ": " +
-								strings.Join(tuples, ". ") + "\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")),
-						},
-						SessionAttributes: requestEnv.Session.Attributes,
-					}
+				responseEnv, handled := readAllEntriesInDate(&journal, intent.Slots["date"].Value, requestEnv.Session.Attributes, h.errorInterpreter)
+				if handled {
+					return responseEnv
 				}
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
@@ -432,6 +388,10 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			case "STARTED", "IN_PROGRESS":
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
 			case "COMPLETED":
+				responseEnv, handled := readAllEntriesInDate(&journal, intent.Slots["date"].Value, requestEnv.Session.Attributes, h.errorInterpreter)
+				if handled {
+					return responseEnv
+				}
 				entryDate, e := date.AutoParse(intent.Slots["date"].Value)
 				if intent.Slots["year"].Value != "" {
 					entryDate, e = date.AutoParse(intent.Slots["year"].Value + intent.Slots["date"].Value[4:])
@@ -627,6 +587,72 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 	default:
 		panic(errors.New("Invalid Request"))
 	}
+}
+
+func listAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttributes map[string]interface{}, errorInterpreter ErrorInterpreter) (responseEnv *alexa.ResponseEnvelope, handled bool) {
+	if matched, e := regexp.MatchString(`\d{4}-\d{2}(-XX)?`, dateSlotValue); e == nil && matched {
+		entries, e := journal.GetEntries(dateSlotValue[:7])
+		if e != nil {
+			return plainTextRespEnv("Oje. Beim Abrufen der Eintraege ist ein Fehler aufgetreten. "+errorInterpreter.Interpret(e),
+					sessionAttributes),
+				true
+		}
+		if len(entries) == 0 {
+			return &alexa.ResponseEnvelope{Version: "1.0",
+					Response: &alexa.Response{
+						OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für den Zeitraum " + readableStringFrom(dateSlotValue) + " gefunden.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")),
+					},
+					SessionAttributes: sessionAttributes,
+				},
+				true
+		}
+		var tuples []string
+		for _, entry := range entries {
+			tuples = append(tuples, weekdays[entry.EntryDate.Weekday().String()]+", "+entry.EntryDate.String()+": "+entry.EntryText)
+		}
+		return &alexa.ResponseEnvelope{Version: "1.0",
+				Response: &alexa.Response{
+					OutputSpeech: plainText(fmt.Sprintf("Hier sind die Einträge für den Zeitraum " + readableStringFrom(dateSlotValue) + ": " +
+						strings.Join(tuples, ". ") + "\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")),
+				},
+				SessionAttributes: sessionAttributes,
+			},
+			true
+	}
+	return nil, false
+}
+
+func readAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttributes map[string]interface{}, errorInterpreter ErrorInterpreter) (responseEnv *alexa.ResponseEnvelope, handled bool) {
+	if matched, e := regexp.MatchString(`\d{4}-\d{2}(-XX)?`, dateSlotValue); e == nil && matched {
+		entries, e := journal.GetEntries(dateSlotValue[:7])
+		if e != nil {
+			return plainTextRespEnv("Oje. Beim Abrufen der Eintraege ist ein Fehler aufgetreten. "+errorInterpreter.Interpret(e),
+					sessionAttributes),
+				true
+		}
+		if len(entries) == 0 {
+			return &alexa.ResponseEnvelope{Version: "1.0",
+					Response: &alexa.Response{
+						OutputSpeech: plainText(fmt.Sprintf("Keine Einträge für den Zeitraum " + readableStringFrom(dateSlotValue) + " gefunden.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")),
+					},
+					SessionAttributes: sessionAttributes,
+				},
+				true
+		}
+		var tuples []string
+		for _, entry := range entries {
+			tuples = append(tuples, weekdays[entry.EntryDate.Weekday().String()]+", "+entry.EntryDate.String()+": "+entry.EntryText)
+		}
+		return &alexa.ResponseEnvelope{Version: "1.0",
+				Response: &alexa.Response{
+					OutputSpeech: plainText(fmt.Sprintf("Hier sind die Einträge für den Zeitraum " + readableStringFrom(dateSlotValue) + ": " +
+						strings.Join(tuples, ". ") + "\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")),
+				},
+				SessionAttributes: sessionAttributes,
+			},
+			true
+	}
+	return nil, false
 }
 
 func readableStringFrom(dateLike string) string {
