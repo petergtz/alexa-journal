@@ -102,7 +102,7 @@ func main() {
 			log:              log,
 			journalProvider:  &DriveSheetJournalProvider{Log: log},
 			errorInterpreter: &DriveSheetErrorInterpreter{},
-			errorReporter:    github.NewGithubErrorReporter("petergtz", "alexa-journal", os.Getenv("GITHUB_TOKEN"), log),
+			errorReporter:    github.NewGithubErrorReporter("petergtz", "alexa-journal", os.Getenv("GITHUB_TOKEN"), log, "`%v`"),
 		},
 		Log:                   log,
 		ExpectedApplicationID: os.Getenv("APPLICATION_ID"),
@@ -176,7 +176,7 @@ type SessionAttributes struct {
 func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (responseEnv *alexa.ResponseEnvelope) {
 	defer func() {
 		if e := recover(); e != nil {
-			h.errorReporter.ReportError("Internal Server Error.", e.(error))
+			h.errorReporter.ReportPanic(e)
 			responseEnv = internalError()
 		}
 	}()
