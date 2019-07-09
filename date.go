@@ -14,6 +14,7 @@ const (
 	DayDate = iota
 	MonthDate
 	YearDate
+	Invalid
 )
 
 var (
@@ -22,6 +23,12 @@ var (
 )
 
 func DateFrom(dateString string, yearString string) (dayDate date.Date, monthDate string, dateType DateType) {
+	if dateString == "" {
+		if yearString != "" {
+			return date.Date{}, "", YearDate
+		}
+		return date.Date{}, "", Invalid
+	}
 	if monthDateRegex.MatchString(dateString) {
 		if yearString != "" {
 			return date.Date{}, yearString + dateString[4:7], MonthDate

@@ -35,6 +35,16 @@ var _ = Describe("Date", func() {
 		Expect(dateType).To(BeEquivalentTo(DayDate))
 		Expect(dayDate).To(Equal(date.New(2019, time.January, 1)))
 		Expect(monthDate).To(BeEmpty())
+
+		dayDate, monthDate, dateType = DateFrom("", "")
+		Expect(dateType).To(BeEquivalentTo(Invalid))
+		Expect(dayDate.IsZero()).To(BeTrue())
+		Expect(monthDate).To(BeEmpty())
+
+		dayDate, monthDate, dateType = DateFrom("", "2017")
+		Expect(dateType).To(BeEquivalentTo(YearDate))
+		Expect(dayDate.IsZero()).To(BeTrue())
+		Expect(monthDate).To(BeEmpty())
 	})
 
 })
