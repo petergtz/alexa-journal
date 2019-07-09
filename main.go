@@ -102,7 +102,7 @@ func main() {
 			log:              log,
 			journalProvider:  &DriveSheetJournalProvider{Log: log},
 			errorInterpreter: &DriveSheetErrorInterpreter{},
-			errorReporter:    github.NewGithubErrorReporter("petergtz", "alexa-journal", os.Getenv("GITHUB_TOKEN"), log, "`%v`"),
+			errorReporter:    github.NewGithubErrorReporter("petergtz", "alexa-journal", os.Getenv("GITHUB_TOKEN"), log, "`message:%v`"),
 		},
 		Log:                   log,
 		ExpectedApplicationID: os.Getenv("APPLICATION_ID"),
