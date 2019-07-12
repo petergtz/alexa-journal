@@ -45,6 +45,11 @@ var _ = Describe("Date", func() {
 		Expect(dateType).To(BeEquivalentTo(YearDate))
 		Expect(dayDate.IsZero()).To(BeTrue())
 		Expect(monthDate).To(BeEmpty())
+
+		dayDate, monthDate, dateType = DateFrom("XXXX-XX-07", "?")
+		Expect(dateType).To(BeEquivalentTo(Invalid))
+		Expect(dayDate.IsZero()).To(BeTrue())
+		Expect(monthDate).To(BeEmpty())
 	})
 
 })

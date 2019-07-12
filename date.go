@@ -18,8 +18,9 @@ const (
 )
 
 var (
-	monthDateRegex = regexp.MustCompile(`^\d{4}-\d{2}(-XX)?$`)
-	yearDateRegex  = regexp.MustCompile(`^\d{4}(-XX-XX)?$`)
+	monthDateRegex   = regexp.MustCompile(`^\d{4}-\d{2}(-XX)?$`)
+	yearDateRegex    = regexp.MustCompile(`^\d{4}(-XX-XX)?$`)
+	invalidDateRegex = regexp.MustCompile(`^XXXX-XX-\d{2}$`)
 )
 
 func DateFrom(dateString string, yearString string) (dayDate date.Date, monthDate string, dateType DateType) {
@@ -37,6 +38,9 @@ func DateFrom(dateString string, yearString string) (dayDate date.Date, monthDat
 	}
 	if yearDateRegex.MatchString(dateString) {
 		return date.Date{}, "", YearDate
+	}
+	if invalidDateRegex.MatchString(dateString) || yearString == "?" {
+		return date.Date{}, "", Invalid
 	}
 	entryDate, e := date.AutoParse(dateString)
 	if yearString != "" {
