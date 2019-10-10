@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/petergtz/alexa-journal/github"
@@ -23,8 +21,8 @@ var _ = Describe("Github", func() {
 		defer l.Sync()
 		log := l.Sugar()
 
-		er := NewGithubErrorReporter("petergtz", "alexa-journal", strings.TrimSpace(string(token)), log)
+		er := NewGithubErrorReporter("petergtz", "alexa-journal", strings.TrimSpace(string(token)), log, "logsUrl %v")
 
-		er.ReportError("Testing: Some error occurred", errors.New("Some test error"))
+		er.ReportPanic("Testing: Some error occurred")
 	})
 })

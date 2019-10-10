@@ -22,6 +22,13 @@ func (td *StringBasedTabularData) Rows() ([][]string, error) {
 	return rows, nil
 }
 
+func (td *StringBasedTabularData) DeleteRow(i int) error {
+	rows := strings.Split((td.content), "\n")
+	rows = append(rows[:i], rows[i+1:]...)
+	td.content = strings.Join(rows, "\n")
+	return nil
+}
+
 func (td *StringBasedTabularData) Empty() (bool, error) {
 	return td.content == "", nil
 }
