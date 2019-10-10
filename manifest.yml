@@ -1,7 +1,0 @@
----
-applications:
-- name: alexa-journal
-  memory: 64M
-  instances: 1
-  env:
-     GOPACKAGENAME: github.com/petergtz/alexa-journal

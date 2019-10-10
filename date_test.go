@@ -1,4 +1,4 @@
-package main_test
+package journalskill_test
 
 import (
 	"time"
