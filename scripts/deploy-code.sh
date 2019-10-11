@@ -1,9 +1,9 @@
 #!/bin/bash -ex
 
-cd $(dirname $0)/..
-
 zip_file=alexa-journal.zip
 function_name=AlexaJournal
+
+cd $(dirname $0)/..
 
 pushd cmd/skill
     go build -o main
