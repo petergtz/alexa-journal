@@ -131,7 +131,8 @@
             "Such nach {query}",
             "Such {query}",
             "Suche {query}",
-            "Suche nach {query}"
+            "Suche nach {query}",
+            "Suchen"
           ]
         },
         {
@@ -152,6 +153,7 @@
       ],
       "types": [
         {
+          "name": "Unit",
           "values": [
             {
               "id": "DAYS",
@@ -183,8 +185,7 @@
                 ]
               }
             }
-          ],
-          "name": "Unit"
+          ]
         }
       ]
     },
@@ -240,27 +241,33 @@
         },
         {
           "name": "ReadExistingEntryRelativeDateIntent",
+          "delegationStrategy": "ALWAYS",
           "confirmationRequired": false,
           "prompts": {},
           "slots": [
             {
               "name": "number",
               "type": "AMAZON.NUMBER",
-              "elicitationRequired": false,
+              "elicitationRequired": true,
               "confirmationRequired": false,
-              "prompts": {}
+              "prompts": {
+                "elicitation": "Elicit.Slot.922944218520.1497640595622"
+              }
             },
             {
               "name": "unit",
               "type": "Unit",
-              "elicitationRequired": false,
+              "elicitationRequired": true,
               "confirmationRequired": false,
-              "prompts": {}
+              "prompts": {
+                "elicitation": "Elicit.Slot.922944218520.834212133831"
+              }
             }
           ]
         },
         {
           "name": "SearchIntent",
+          "delegationStrategy": "ALWAYS",
           "confirmationRequired": false,
           "prompts": {},
           "slots": [
@@ -424,8 +431,25 @@
             "value": "Zu welchem Datum?"
           }
         ]
+      },
+      {
+        "id": "Elicit.Slot.922944218520.834212133831",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Das habe ich leider nicht verstanden. Kannst Du es bitte wiederholen?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.922944218520.1497640595622",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Das habe ich leider nicht verstanden. Kannst Du es bitte wiederholen?"
+          }
+        ]
       }
     ]
-  },
-  "version": "2"
+  }
 }
