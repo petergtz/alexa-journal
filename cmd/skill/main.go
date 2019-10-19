@@ -26,7 +26,7 @@ func main() {
 	}
 
 	lambda.StartLambdaSkill(skill.NewJournalSkill(
-		&drive.DriveSheetJournalProvider{Log: logger},
+		drive.NewDriveSheetJournalProvider(logger),
 		&drive.DriveSheetErrorInterpreter{},
 		logger,
 		github.NewGithubErrorReporter(

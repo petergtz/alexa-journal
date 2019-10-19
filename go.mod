@@ -8,6 +8,7 @@ require (
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/petergtz/go-alexa v0.0.0-20191008085416-26b4009a4a9e
 	github.com/pkg/errors v0.8.1
 	github.com/pkg/math v0.0.0-20141027224758-f2ed9e40e245

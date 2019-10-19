@@ -125,6 +125,9 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 	switch requestEnv.Request.Type {
 
 	case "LaunchRequest":
+		// cache warming:
+		go h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+
 		return &alexa.ResponseEnvelope{Version: "1.0",
 			Response:          &alexa.Response{OutputSpeech: plainText("Dein Tagebuch ist nun geöffnet. Was möchtest Du tun?")},
 			SessionAttributes: requestEnv.Session.Attributes,
