@@ -177,9 +177,13 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 					switch intent.Slots["text"].Value {
 					case "":
 						sessionAttributes.Drafting = true
+						dateString := ""
+						if intent.Slots["date"].Value != "" {
+							dateString = "für den " + intent.Slots["date"].Value
+						}
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
-								OutputSpeech: plainText("Du kannst Deinen eintrag nun verfassen; ich werde jeden Teil kurz bestaetigen, sodass du die moeglichkeit hast ihn zu \"korrigieren\" oder \"anzuhoeren\". Sage \"fertig\", wenn Du fertig bist."),
+								OutputSpeech: plainText("Du kannst Deinen eintrag " + dateString + " nun verfassen; ich werde jeden Teil kurz bestaetigen, sodass du die moeglichkeit hast ihn zu \"korrigieren\" oder \"anzuhoeren\". Sage \"fertig\", wenn Du fertig bist."),
 								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
