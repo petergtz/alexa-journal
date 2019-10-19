@@ -233,6 +233,14 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
+					case "abbrechen":
+						sessionAttributes.Drafting = false
+						return &alexa.ResponseEnvelope{Version: "1.0",
+							Response: &alexa.Response{
+								OutputSpeech: plainText("Okay. Abgebrochen.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?"),
+							},
+							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
+						}
 					case "fertig":
 						if len(sessionAttributes.Drafts[intent.Slots["date"].Value]) == 0 {
 							sessionAttributes.Drafting = false
