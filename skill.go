@@ -162,12 +162,14 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 					if _, exists := sessionAttributes.Drafts[intent.Slots["date"].Value]; exists && !sessionAttributes.Drafting {
 						switch intent.Slots["text"].ConfirmationStatus {
 						case "NONE":
+							outputSpeech := plainText("Fuer dieses Datum hast Du bereits einen Eintrag entworfen. " +
+								"Er lautet: " + strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". ") + "." +
+								" Moechtest Du mit diesem Eintrag weiter machen?")
 							return &alexa.ResponseEnvelope{Version: "1.0",
 								Response: &alexa.Response{
-									OutputSpeech: plainText("Fuer dieses Datum hast Du bereits einen Eintrag entworfen. " +
-										"Er lautet: " + strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". ") + "." +
-										" Moechtest Du mit diesem Eintrag weiter machen?"),
-									Directives: []interface{}{alexa.DialogDirective{Type: "Dialog.ConfirmSlot", SlotToConfirm: "text"}},
+									OutputSpeech: outputSpeech,
+									Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ConfirmSlot", SlotToConfirm: "text"}},
+									Reprompt:     &alexa.Reprompt{OutputSpeech: outputSpeech},
 								},
 								SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 							}
@@ -188,6 +190,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							Response: &alexa.Response{
 								OutputSpeech: plainText("Du kannst Deinen eintrag " + dateString + " nun verfassen; ich werde jeden Teil kurz bestaetigen, sodass du die moeglichkeit hast ihn zu \"korrigieren\" oder \"anzuhoeren\". Sage \"fertig\", wenn Du fertig bist."),
 								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
+								Reprompt:     &alexa.Reprompt{OutputSpeech: plainText("Du kannst Deinen eintrag " + dateString + " nun verfassen.")},
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
@@ -197,6 +200,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							Response: &alexa.Response{
 								OutputSpeech: plainText("OK, weiter?"),
 								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
+								Reprompt:     &alexa.Reprompt{OutputSpeech: plainText("Bitte verfasse den nächsten Teil Deines Eintrags.")},
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
@@ -233,6 +237,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							Response: &alexa.Response{
 								OutputSpeech: plainText("OK. Bitte verfasse den letzten Teil Deines Eintrags erneut."),
 								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
+								Reprompt:     &alexa.Reprompt{OutputSpeech: plainText("Bitte verfasse den letzten Teil Deines Eintrags erneut.")},
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
@@ -257,6 +262,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 								OutputSpeech: plainText("Alles klar. Ich habe folgenden Eintrag für das Datum " + intent.Slots["date"].Value + ": " +
 									"\"" + strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". ") + "\". Soll ich ihn so speichern?"),
 								Directives: []interface{}{alexa.DialogDirective{Type: "Dialog.ConfirmIntent", UpdatedIntent: &intent}},
+								Reprompt:   &alexa.Reprompt{OutputSpeech: plainText("Soll ich Deinen Eintrag so speichern?")},
 							},
 							SessionAttributes: requestEnv.Session.Attributes,
 						}
@@ -298,7 +304,8 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				}
 				return &alexa.ResponseEnvelope{Version: "1.0",
 					Response: &alexa.Response{
-						OutputSpeech: plainText(fmt.Sprintf("Ich habe Dich nicht richtig verstanden. Kannst Du es bitte noch einmal versuchen?")),
+						OutputSpeech: plainText("Ich habe Dich nicht richtig verstanden. Kannst Du es bitte noch einmal versuchen?"),
+						Reprompt:     &alexa.Reprompt{OutputSpeech: plainText("Ich habe Dich nicht richtig verstanden. Kannst Du es bitte noch einmal versuchen?")},
 					},
 					SessionAttributes: requestEnv.Session.Attributes,
 				}
@@ -318,6 +325,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
 							OutputSpeech: plainText(fmt.Sprintf("Ich habe Dich nicht richtig verstanden. Bitte versuche es noch einmal. Sage z.B. \"was war im Juni 1997?\"")),
+							Reprompt:     &alexa.Reprompt{OutputSpeech: plainText("Ich habe Dich nicht richtig verstanden. Kannst Du es bitte noch einmal versuchen?")},
 						},
 						SessionAttributes: requestEnv.Session.Attributes,
 					}
@@ -469,6 +477,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						Response: &alexa.Response{
 							OutputSpeech: plainText("Du moechtest den folgenden Eintrag loeschen: " + entry + ". Soll ich ihn wirklich loeschen?"),
 							Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ConfirmIntent", UpdatedIntent: &intent}},
+							Reprompt:     &alexa.Reprompt{OutputSpeech: plainText("Du moechtest den folgenden Eintrag loeschen: " + entry + ". Soll ich ihn wirklich loeschen?")},
 						},
 						SessionAttributes: requestEnv.Session.Attributes,
 					}
