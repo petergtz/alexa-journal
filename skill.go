@@ -107,7 +107,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 		}
 	}()
 
-	log := h.log.With("request", requestEnv.Request, "SessionAttributes", requestEnv.Session.Attributes)
+	log := h.log.With("request", requestEnv.Request, "session", requestEnv.Session)
 	log.Infow("Request started")
 	defer log.Infow("Request completed")
 
