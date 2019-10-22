@@ -456,7 +456,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			switch requestEnv.Request.DialogState {
 			case "STARTED":
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
-			case "IN_PROGRESS":
+			case "IN_PROGRESS", "COMPLETED":
 				switch intent.ConfirmationStatus {
 				case "NONE":
 					if intent.Slots["date"].Value == "" {
