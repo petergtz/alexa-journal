@@ -6,6 +6,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sns"
 	"github.com/petergtz/go-alexa/lambda"
 
 	skill "github.com/petergtz/alexa-journal"
@@ -34,7 +37,9 @@ func main() {
 			"alexa-journal",
 			githubToken,
 			logger,
-			"`fields @timestamp, @message | filter `error-id` = %v`"),
+			"``fields @timestamp, @message | filter `error-id` = %v``",
+			sns.New(session.Must(session.NewSession(&aws.Config{Region: aws.String("eu-west-1")}))),
+			"arn:aws:sns:eu-west-1:512841817041:AlexaJournalErrors"),
 	), logger)
 }
 

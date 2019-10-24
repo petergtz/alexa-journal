@@ -3,6 +3,7 @@ module github.com/petergtz/alexa-journal
 go 1.13
 
 require (
+	github.com/aws/aws-sdk-go v1.19.42
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
