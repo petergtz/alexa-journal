@@ -81,6 +81,10 @@ func (r *GithubErrorReporter) ReportPanic(e interface{}) {
 	}
 }
 
+func (r *GithubErrorReporter) ReportError(e error) {
+	r.ReportPanic(e)
+}
+
 func errorStringFrom(e interface{}) string {
 	if _, hasStackTrace := e.(interface{ StackTrace() errors.StackTrace }); hasStackTrace {
 		return fmt.Sprintf("%+v", e)

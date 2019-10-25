@@ -1,15 +1,15 @@
 package drive
 
-import "github.com/pkg/errors"
+import (
+	journalskill "github.com/petergtz/alexa-journal"
+	"github.com/pkg/errors"
+)
 
 type DriveSheetErrorInterpreter struct {
-	// Using this as a temp shortcut
-	TSVDriveFileErrorInterpreter
+	ErrorReporter journalskill.ErrorReporter
 }
 
-type TSVDriveFileErrorInterpreter struct{}
-
-func (interpreter *TSVDriveFileErrorInterpreter) Interpret(e error) string {
+func (interpreter *DriveSheetErrorInterpreter) Interpret(e error) string {
 	cause := errors.Cause(e)
 	switch {
 	case IsCannotCreateFileError(cause):
@@ -19,7 +19,8 @@ func (interpreter *TSVDriveFileErrorInterpreter) Interpret(e error) string {
 	case IsSheetNotFoundError(cause):
 		return "Ich habe in Deinem Spreadsheet kein Tabellenblatt mit dem Namen Tagebuch gefunden. Bitte stelle sicher, dass dies existiert."
 	default:
-		return "Genauere Details kann ich aktuell leider nicht herausfinden. Bitte versuche es spaeter noch einmal."
+		interpreter.ErrorReporter.ReportError(errors.Wrap(e, "Could not interpret this error."))
+		return "Genauere Details kann ich aktuell leider nicht herausfinden. Ich habe den Entwickler bereits informiert, er wird sich um das Problem kümmern. Bitte versuche es später noch einmal."
 	}
 }
 

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/petergtz/alexa-journal/github"
 	"github.com/petergtz/alexa-journal/util"
 	"github.com/rickb777/date"
 
@@ -32,17 +31,21 @@ type ErrorInterpreter interface {
 	Interpret(error) string
 }
 
+type ErrorReporter interface {
+	ReportPanic(e interface{})
+	ReportError(e error)
+}
 type JournalSkill struct {
 	journalProvider  JournalProvider
 	errorInterpreter ErrorInterpreter
 	log              *zap.SugaredLogger
-	errorReporter    *github.GithubErrorReporter
+	errorReporter    ErrorReporter
 }
 
 func NewJournalSkill(journalProvider JournalProvider,
 	errorInterpreter ErrorInterpreter,
 	log *zap.SugaredLogger,
-	errorReporter *github.GithubErrorReporter,
+	errorReporter ErrorReporter,
 ) *JournalSkill {
 	return &JournalSkill{
 		journalProvider:  journalProvider,
