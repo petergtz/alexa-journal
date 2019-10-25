@@ -12,13 +12,12 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/google/go-github/github"
-	gh "github.com/google/go-github/github"
 	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 )
 
 type GithubErrorReporter struct {
-	ghClient    *gh.Client
+	ghClient    *github.Client
 	logger      *zap.SugaredLogger
 	ctx         context.Context
 	owner       string
@@ -31,7 +30,7 @@ type GithubErrorReporter struct {
 func NewGithubErrorReporter(owner, repo, token string, logger *zap.SugaredLogger, logsURL string, snsClient *sns.SNS, snsTopicArn string) *GithubErrorReporter {
 	ctx := context.TODO()
 	return &GithubErrorReporter{
-		ghClient:    gh.NewClient(oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))),
+		ghClient:    github.NewClient(oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))),
 		ctx:         ctx,
 		logger:      logger,
 		repo:        repo,
