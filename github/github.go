@@ -7,7 +7,6 @@ import (
 	"runtime/debug"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sns"
 
 	"go.uber.org/zap"
@@ -31,7 +30,6 @@ type GithubErrorReporter struct {
 
 func NewGithubErrorReporter(owner, repo, token string, logger *zap.SugaredLogger, logsURL string, snsClient *sns.SNS, snsTopicArn string) *GithubErrorReporter {
 	ctx := context.TODO()
-	sns.New(session.Must(session.NewSession(&aws.Config{Region: aws.String("eu-central-1")})))
 	return &GithubErrorReporter{
 		ghClient:    gh.NewClient(oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}))),
 		ctx:         ctx,
