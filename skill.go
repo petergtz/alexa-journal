@@ -32,7 +32,7 @@ type ErrorInterpreter interface {
 }
 
 type ErrorReporter interface {
-	ReportPanic(e interface{})
+	ReportPanic(e interface{}, requestEnv *alexa.RequestEnvelope)
 	ReportError(e error)
 }
 type JournalSkill struct {
@@ -105,7 +105,7 @@ type SessionAttributes struct {
 func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (responseEnv *alexa.ResponseEnvelope) {
 	defer func() {
 		if e := recover(); e != nil {
-			h.errorReporter.ReportPanic(e)
+			h.errorReporter.ReportPanic(e, requestEnv)
 			responseEnv = internalError()
 		}
 	}()

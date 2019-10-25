@@ -2,9 +2,12 @@ package github
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"runtime/debug"
+
+	"github.com/petergtz/go-alexa"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sns"
@@ -41,7 +44,7 @@ func NewGithubErrorReporter(owner, repo, token string, logger *zap.SugaredLogger
 	}
 }
 
-func (r *GithubErrorReporter) ReportPanic(e interface{}) {
+func (r *GithubErrorReporter) ReportPanic(e interface{}, requestEnv *alexa.RequestEnvelope) {
 	errorID := rand.Int63()
 	errorString := errorStringFrom(e)
 
@@ -68,7 +71,14 @@ func (r *GithubErrorReporter) ReportPanic(e interface{}) {
 	_, snsErr := r.snsClient.Publish(&sns.PublishInput{
 		TopicArn: aws.String(r.snsTopicArn),
 		Subject:  aws.String(fmt.Sprintf(r.repo+": Internal Server Error (ErrID: %v)", errorID)),
-		Message:  aws.String(fmt.Sprintf("ERROR DETAILS:\n\n%s\nCloudWatch Query: %v", stringify(attributes), fmt.Sprintf(r.logsURL, errorID))),
+		Message: aws.String(fmt.Sprintf(`ERROR DETAILS:
+%s
+
+ALEXA REQUEST:
+%v
+
+CLOUDWATCH QUERY:
+%v`, stringify(attributes), alexaRequestString(requestEnv), fmt.Sprintf(r.logsURL, errorID))),
 	})
 
 	if snsErr != nil {
@@ -79,7 +89,7 @@ func (r *GithubErrorReporter) ReportPanic(e interface{}) {
 }
 
 func (r *GithubErrorReporter) ReportError(e error) {
-	r.ReportPanic(e)
+	r.ReportPanic(e, nil)
 }
 
 func errorStringFrom(e interface{}) string {
@@ -103,4 +113,17 @@ func slicify(m map[string]interface{}) []interface{} {
 		result = append(result, k, v)
 	}
 	return result
+}
+
+func alexaRequestString(requestEnv *alexa.RequestEnvelope) string {
+	if requestEnv == nil {
+		return "Not available."
+	}
+	r := *requestEnv
+	r.Session.User.AccessToken = "<REDACTED>"
+	buf, e := json.MarshalIndent(r, "", "  ")
+	if e != nil {
+		return "Error while marshalling request. Error: " + e.Error()
+	}
+	return string(buf)
 }
