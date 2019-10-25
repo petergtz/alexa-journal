@@ -20,6 +20,8 @@ import (
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	logger := createLoggerWith(zap.NewAtomicLevelAt(zap.DebugLevel))
 	defer logger.Sync()
 
@@ -51,6 +53,5 @@ func createLoggerWith(logLevel zap.AtomicLevel) *zap.SugaredLogger {
 	if e != nil {
 		log.Panic(e)
 	}
-	rand.Seed(time.Now().UnixNano())
 	return logger.Sugar().With("function-instance-id", rand.Int63())
 }
