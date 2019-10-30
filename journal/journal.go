@@ -142,6 +142,10 @@ func (j *Journal) GetClosestEntry(entryDate date.Date) (Entry, error) {
 		if parts[1] == "" {
 			continue
 		}
+		_, e := time.Parse(TimestampFormat, parts[0])
+		if e != nil {
+			continue
+		}
 		d, e := date.AutoParse(parts[1])
 		if e != nil {
 			continue
