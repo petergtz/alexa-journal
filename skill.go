@@ -8,6 +8,10 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	. "github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/petergtz/alexa-journal/locale"
+
 	"github.com/petergtz/alexa-journal/util"
 	"github.com/rickb777/date"
 
@@ -40,18 +44,34 @@ type JournalSkill struct {
 	errorInterpreter ErrorInterpreter
 	log              *zap.SugaredLogger
 	errorReporter    ErrorReporter
+	i18nBundle       *i18n.Bundle
+	configService    ConfigService
+}
+
+type ConfigService interface {
+	GetConfig(userID string) Config
+	PersistConfig(userID string, config Config)
+}
+
+type Config struct {
+	BeSuccinct                     bool
+	ShouldExplainAboutSuccinctMode bool
 }
 
 func NewJournalSkill(journalProvider JournalProvider,
 	errorInterpreter ErrorInterpreter,
 	log *zap.SugaredLogger,
 	errorReporter ErrorReporter,
+	i18nBundle *i18n.Bundle,
+	configService ConfigService,
 ) *JournalSkill {
 	return &JournalSkill{
 		journalProvider:  journalProvider,
 		errorInterpreter: errorInterpreter,
 		log:              log,
 		errorReporter:    errorReporter,
+		configService:    configService,
+		i18nBundle:       i18nBundle,
 	}
 }
 
@@ -124,6 +144,11 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			SessionAttributes: requestEnv.Session.Attributes,
 		}
 	}
+	config := h.configService.GetConfig(requestEnv.Session.User.UserID)
+	l := locale.NewLocalizer(
+		h.i18nBundle,
+		requestEnv.Request.Locale,
+		config.BeSuccinct)
 
 	switch requestEnv.Request.Type {
 
@@ -132,7 +157,14 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 		go h.journalProvider.Get(requestEnv.Session.User.AccessToken)
 
 		return &alexa.ResponseEnvelope{Version: "1.0",
-			Response:          &alexa.Response{OutputSpeech: plainText("Dein Tagebuch ist nun geöffnet. Was möchtest Du tun?")},
+			Response: &alexa.Response{
+				OutputSpeech: plainText(l.MustLocalize(&LocalizeConfig{
+					DefaultMessage: &Message{
+						ID:    "YourJournalIsNowOpen",
+						Other: "Dein Tagebuch ist nun geöffnet. Was möchtest Du tun?",
+					},
+				})),
+			},
 			SessionAttributes: requestEnv.Session.Attributes,
 		}
 
@@ -151,6 +183,26 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 
 		intent := requestEnv.Request.Intent
 		switch intent.Name {
+		case "BeSuccinctIntent":
+			newConfig := config
+			config.BeSuccinct = true
+			h.configService.PersistConfig(requestEnv.Session.User.UserID, newConfig)
+			return &alexa.ResponseEnvelope{Version: "1.0",
+				Response: &alexa.Response{
+					OutputSpeech: plainText("Okay. Ich werde mich kurzfassen. Falls ich wieder ausfuehrlicher sein soll, sage Alexa, sei ausfuehrlich. Was moechtest Du als naechstes tun?"),
+				},
+				SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
+			}
+		case "BeVerboseIntent":
+			newConfig := config
+			config.BeSuccinct = false
+			h.configService.PersistConfig(requestEnv.Session.User.UserID, newConfig)
+			return &alexa.ResponseEnvelope{Version: "1.0",
+				Response: &alexa.Response{
+					OutputSpeech: plainText("Okay. Ich werde ausführlich sein. Falls ich mich wieder kurzfassen soll, sage Alexa, fasse Dich kurz. Was moechtest Du als naechstes tun?"),
+				},
+				SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
+			}
 		case "NewEntryIntent":
 			switch requestEnv.Request.DialogState {
 			case "STARTED":
@@ -189,11 +241,27 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						if intent.Slots["date"].Value != "" {
 							dateString = "für den " + intent.Slots["date"].Value
 						}
+						succinctModeExplanation := ""
+						if config.ShouldExplainAboutSuccinctMode {
+							succinctModeExplanation = l.MustLocalize(&LocalizeConfig{
+								DefaultMessage: &Message{
+									ID:    "ExplainSuccinctMode",
+									Other: "Falls Du diese Erklärung nicht jedes Mal hoeren moechtest, sage Alexa, fasse Dich kurz.",
+								},
+							})
+						}
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
-								OutputSpeech: plainText("Du kannst Deinen eintrag " + dateString + " nun verfassen; ich werde jeden Teil kurz bestaetigen, sodass du die moeglichkeit hast ihn zu \"korrigieren\" oder \"anzuhoeren\". Sage \"fertig\", wenn Du fertig bist."),
-								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
-								Reprompt:     &alexa.Reprompt{OutputSpeech: plainText("Du kannst Deinen eintrag " + dateString + " nun verfassen.")},
+								OutputSpeech: plainText(l.MustLocalize(&LocalizeConfig{
+									DefaultMessage: &Message{
+										ID: "YouCanNowCreateYourEntry",
+										Other: "Du kannst Deinen eintrag " + dateString + " nun verfassen; " +
+											"ich werde jeden Teil kurz bestaetigen, sodass du die moeglichkeit hast ihn zu \"korrigieren\" oder \"anzuhoeren\". " +
+											"Sage \"fertig\", wenn Du fertig bist.",
+									},
+								}) + " " + succinctModeExplanation),
+								Directives: []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
+								Reprompt:   &alexa.Reprompt{OutputSpeech: plainText("Du kannst Deinen eintrag " + dateString + " nun verfassen.")},
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
