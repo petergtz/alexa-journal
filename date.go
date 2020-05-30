@@ -3,8 +3,6 @@ package journalskill
 import (
 	"regexp"
 
-	"github.com/petergtz/alexa-journal/util"
-	"github.com/pkg/errors"
 	"github.com/rickb777/date"
 )
 
@@ -43,9 +41,14 @@ func DateFrom(dateString string, yearString string) (dayDate date.Date, monthDat
 		return date.Date{}, "", Invalid
 	}
 	entryDate, e := date.AutoParse(dateString)
+	if e != nil {
+		return date.Date{}, "", Invalid
+	}
 	if yearString != "" {
 		entryDate, e = date.AutoParse(yearString + dateString[4:])
+		if e != nil {
+			return date.Date{}, "", Invalid
+		}
 	}
-	util.PanicOnError(errors.Wrapf(e, "Could not convert dateString '%v' and yearString '%v' to date", dateString, yearString))
 	return entryDate, "", DayDate
 }

@@ -320,7 +320,8 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			case "STARTED", "IN_PROGRESS":
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
 			case "COMPLETED":
-				if !regexp.MustCompile(`^\d\d\d\d$`).MatchString(intent.Slots["year"].Value) {
+				entryDate, monthDate, dateType := DateFrom(intent.Slots["date"].Value, intent.Slots["year"].Value)
+				if dateType == Invalid {
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
 							OutputSpeech: plainText(fmt.Sprintf("Ich habe Dich nicht richtig verstanden. Bitte versuche es noch einmal. Sage z.B. \"was war im Juni 1997?\"")),
@@ -329,18 +330,8 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						SessionAttributes: requestEnv.Session.Attributes,
 					}
 				}
-				entryDate, monthDate, dateType := DateFrom(intent.Slots["date"].Value, intent.Slots["year"].Value)
 				if dateType == MonthDate {
 					return readAllEntriesInDate(&journal, monthDate, requestEnv.Session.Attributes, h.errorInterpreter)
-				}
-				if dateType != DayDate {
-					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response: &alexa.Response{
-							OutputSpeech: plainText(fmt.Sprintf("Ich habe Dich nicht richtig verstanden. Bitte versuche es noch einmal. Sage z.B. \"was war im Juni 1997?\"")),
-							Reprompt:     &alexa.Reprompt{OutputSpeech: plainText("Ich habe Dich nicht richtig verstanden. Kannst Du es bitte noch einmal versuchen?")},
-						},
-						SessionAttributes: requestEnv.Session.Attributes,
-					}
 				}
 
 				text, e := journal.GetEntry(entryDate)
