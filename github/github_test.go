@@ -15,7 +15,7 @@ import (
 )
 
 var _ = Describe("Github", func() {
-	FIt("can create an issue", func() {
+	It("can create an issue", func() {
 		token, e := ioutil.ReadFile("../private/github-access-token")
 		Expect(e).NotTo(HaveOccurred())
 		l, e := zap.NewDevelopment()
@@ -35,7 +35,7 @@ var _ = Describe("Github", func() {
 			"arn:aws:sns:eu-west-1:512841817041:AlexaJournalErrors",
 		)
 
-		er.ReportPanic("Testing: Some error occurred")
+		er.ReportPanic("Testing: Some error occurred", nil)
 	})
 
 	It("can publish on SNS topic", func() {
