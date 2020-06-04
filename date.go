@@ -24,6 +24,9 @@ var (
 )
 
 func DateFrom(dateString string, yearString string) (dayDate date.Date, monthDate string, dateType DateType) {
+	if yearString != "" {
+		yearString = fmt.Sprintf("%04s", yearString)
+	}
 	if dateString == "" {
 		if yearString != "" {
 			return date.Date{}, "", YearDate

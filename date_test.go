@@ -66,6 +66,11 @@ var _ = Describe("Date", func() {
 		today := time.Now()
 		Expect(dayDate).To(Equal(date.New(today.Year(), today.Month(), 2)))
 		Expect(monthDate).To(BeEmpty())
+
+		dayDate, monthDate, dateType = DateFrom("2020-06", "197")
+		Expect(dateType).To(BeEquivalentTo(MonthDate))
+		Expect(dayDate.IsZero()).To(BeTrue())
+		Expect(monthDate).To(Equal("0197-06"))
 	})
 
 })
