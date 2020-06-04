@@ -1,6 +1,7 @@
 package journalskill
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/rickb777/date"
@@ -16,10 +17,10 @@ const (
 )
 
 var (
-	monthDateRegex   = regexp.MustCompile(`^\d{4}-\d{2}(-XX)?$`)
-	yearDateRegex    = regexp.MustCompile(`^\d{4}(-XX-XX)?$`)
-	invalidDateRegex = regexp.MustCompile(`^XXXX-XX-\d{2}$`)
-	xxDayDateRegex   = regexp.MustCompile(`^XX\d{2}-\d{2}-\d{2}$`)
+	monthDateRegex     = regexp.MustCompile(`^\d{4}-\d{2}(-XX)?$`)
+	yearDateRegex      = regexp.MustCompile(`^\d{4}(-XX-XX)?$`)
+	xxDayDateRegex     = regexp.MustCompile(`^XX\d{2}-\d{2}-\d{2}$`)
+	xxxxXXDayDateRegex = regexp.MustCompile(`^XXXX-XX-\d{2}$`)
 )
 
 func DateFrom(dateString string, yearString string) (dayDate date.Date, monthDate string, dateType DateType) {
@@ -38,8 +39,12 @@ func DateFrom(dateString string, yearString string) (dayDate date.Date, monthDat
 	if yearDateRegex.MatchString(dateString) {
 		return date.Date{}, "", YearDate
 	}
-	if invalidDateRegex.MatchString(dateString) || yearString == "?" {
+	if yearString == "?" {
 		return date.Date{}, "", Invalid
+	}
+	if xxxxXXDayDateRegex.MatchString(dateString) {
+		today := date.Today()
+		dateString = fmt.Sprintf("%04d-%02d-%v", today.Year(), today.Month(), dateString[8:])
 	}
 	if xxDayDateRegex.MatchString(dateString) {
 		dateString = "20" + dateString[2:]
