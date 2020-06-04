@@ -339,8 +339,10 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						}
 					}
 				case "CONFIRMED":
-					date, e := date.AutoParse(intent.Slots["date"].Value)
-					util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to date", intent.Slots["date"].Value))
+					date, _, dateType := DateFrom(intent.Slots["date"].Value, "")
+					if dateType != DayDate {
+						panic(errors.Errorf("Could not parse string '%v' to day date", intent.Slots["date"].Value))
+					}
 
 					journal.AddEntry(date, strings.Join(sessionAttributes.Drafts[intent.Slots["date"].Value], ". "))
 
