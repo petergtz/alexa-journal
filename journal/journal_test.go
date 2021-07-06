@@ -42,6 +42,22 @@ var _ = Describe("Journal", func() {
 
 	})
 
+	Describe("GetEntries", func() {
+		It("can read rows even when timestamp is empty", func() {
+			journal.Data.AppendRow([]string{"", "1994-08-20", "one"})
+
+			Expect(journal.GetEntries("1994-08")).
+				To(ContainElement(j.Entry{time.Time{}, date.MustAutoParse("1994-08-20"), "one"}))
+		})
+
+		It("can read rows even when timestamp is messed up", func() {
+			journal.Data.AppendRow([]string{"sdjfh", "1994-08-20", "one"})
+
+			Expect(journal.GetEntries("1994-08")).
+				To(ContainElement(j.Entry{time.Time{}, date.MustAutoParse("1994-08-20"), "one"}))
+		})
+	})
+
 	Describe("GetClosestEntry", func() {
 		It("can find entry", func() {
 			journal.AddEntry(date.MustAutoParse("1994-08-04"), "One")

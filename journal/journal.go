@@ -7,7 +7,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/petergtz/alexa-journal/util"
 	"github.com/rickb777/date"
 )
 
@@ -40,7 +39,10 @@ type Entry struct {
 
 func entryFromSlice(parts []string) Entry {
 	timestamp, e := time.Parse(TimestampFormat, parts[0])
-	util.PanicOnError(e)
+	if e != nil {
+		// Let's be more forgiving for the cases where a user messed up some data in the sheet
+		timestamp = time.Time{}
+	}
 	if parts[1] == "" {
 		panic(errors.New("parts[1] must not be empty"))
 	}
