@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ = Describe("Github", func() {
+var _ = XDescribe("Github", func() {
 	It("can create an issue", func() {
 		token, e := ioutil.ReadFile("../private/github-access-token")
 		Expect(e).NotTo(HaveOccurred())
