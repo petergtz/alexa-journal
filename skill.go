@@ -210,7 +210,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			case "IN_PROGRESS":
 				switch intent.ConfirmationStatus {
 				case "NONE":
-					_, _, dateType := DateFrom(intent.Slots["date"].Value, "")
+					_, _, dateType := DateFrom(intent.Slots["date"].Value)
 					if dateType != DayDate {
 						intent.Slots["date"] = alexa.IntentSlot{
 							Name:               intent.Slots["date"].Name,
@@ -346,7 +346,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						}
 					}
 				case "CONFIRMED":
-					date, _, dateType := DateFrom(intent.Slots["date"].Value, "")
+					date, _, dateType := DateFrom(intent.Slots["date"].Value)
 					if dateType != DayDate {
 						panic(errors.Errorf("Could not parse string '%v' to day date", intent.Slots["date"].Value))
 					}
@@ -378,7 +378,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			case "STARTED", "IN_PROGRESS":
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
 			case "COMPLETED":
-				_, monthDate, dateType := DateFrom(intent.Slots["date"].Value, intent.Slots["year"].Value)
+				_, monthDate, dateType := DateFrom(intent.Slots["date"].Value)
 				if dateType == MonthDate {
 					return listAllEntriesInDate(&journal, monthDate, requestEnv.Session.Attributes, h.errorInterpreter)
 				}
@@ -397,7 +397,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			case "STARTED", "IN_PROGRESS":
 				return pureDelegate(&intent, requestEnv.Session.Attributes)
 			case "COMPLETED":
-				entryDate, monthDate, dateType := DateFrom(intent.Slots["date"].Value, intent.Slots["year"].Value)
+				entryDate, monthDate, dateType := DateFrom(intent.Slots["date"].Value)
 				if dateType == Invalid {
 					return &alexa.ResponseEnvelope{Version: "1.0",
 						Response: &alexa.Response{
@@ -539,10 +539,16 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			case "IN_PROGRESS", "COMPLETED":
 				switch intent.ConfirmationStatus {
 				case "NONE":
-					if intent.Slots["date"].Value == "" {
+					date, _, dateType := DateFrom(intent.Slots["date"].Value)
+					if dateType != DayDate {
+						intent.Slots["date"] = alexa.IntentSlot{
+							Name:               intent.Slots["date"].Name,
+							ConfirmationStatus: intent.Slots["date"].ConfirmationStatus,
+							Resolutions:        intent.Slots["date"].Resolutions,
+							Value:              "",
+						}
 						return pureDelegate(&intent, requestEnv.Session.Attributes)
 					}
-					date, e := date.AutoParse(intent.Slots["date"].Value)
 					util.PanicOnError(errors.Wrapf(e, "Could not convert string '%v' to date", intent.Slots["date"].Value))
 
 					entry, e := journal.GetEntry(date)
