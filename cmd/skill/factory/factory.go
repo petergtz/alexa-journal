@@ -38,7 +38,7 @@ func CreateSkill(logger *zap.SugaredLogger) *skill.JournalSkill {
 		&drive.DriveSheetErrorInterpreter{ErrorReporter: githubErrorReporter},
 		logger,
 		githubErrorReporter,
-		createI18nBundle(),
+		CreateI18nBundle(),
 		&EmptyConfigService{},
 	)
 }
@@ -48,7 +48,7 @@ type EmptyConfigService struct{}
 func (*EmptyConfigService) GetConfig(userID string) skill.Config             { return skill.Config{} }
 func (*EmptyConfigService) PersistConfig(userID string, config skill.Config) {}
 
-func createI18nBundle() *i18n.Bundle {
+func CreateI18nBundle() *i18n.Bundle {
 	i18nBundle := i18n.NewBundle(language.English)
 	i18nBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
