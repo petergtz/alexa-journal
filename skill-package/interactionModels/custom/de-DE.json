@@ -153,7 +153,6 @@
       ],
       "types": [
         {
-          "name": "Unit",
           "values": [
             {
               "id": "DAYS",
@@ -185,7 +184,8 @@
                 ]
               }
             }
-          ]
+          ],
+          "name": "Unit"
         }
       ]
     },
@@ -241,7 +241,6 @@
         },
         {
           "name": "ReadExistingEntryRelativeDateIntent",
-          "delegationStrategy": "ALWAYS",
           "confirmationRequired": false,
           "prompts": {},
           "slots": [
@@ -263,11 +262,11 @@
                 "elicitation": "Elicit.Slot.922944218520.834212133831"
               }
             }
-          ]
+          ],
+          "delegationStrategy": "ALWAYS"
         },
         {
           "name": "SearchIntent",
-          "delegationStrategy": "ALWAYS",
           "confirmationRequired": false,
           "prompts": {},
           "slots": [
@@ -280,7 +279,8 @@
                 "elicitation": "Elicit.Slot.918336650218.344852474828"
               }
             }
-          ]
+          ],
+          "delegationStrategy": "ALWAYS"
         },
         {
           "name": "DeleteEntryIntent",
@@ -296,7 +296,8 @@
                 "elicitation": "Elicit.Slot.277245929653.1204341499134"
               }
             }
-          ]
+          ],
+          "delegationStrategy": "SKILL_RESPONSE"
         }
       ],
       "delegationStrategy": "SKILL_RESPONSE"
@@ -451,5 +452,6 @@
         ]
       }
     ]
-  }
+  },
+  "version": "10"
 }

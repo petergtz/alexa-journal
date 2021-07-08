@@ -1,0 +1,67 @@
+{
+  "manifest": {
+    "publishingInformation": {
+      "locales": {
+        "de-DE": {
+          "summary": "Erstelle Dein eigenes Tagebuch mithilfe von Alexa.",
+          "examplePhrases": [
+            "Alexa, öffne mein Tagebuch und erstelle einen neuen Eintrag.",
+            "Alexa, öffne mein Tagebuch.",
+            "Lies den Eintrag von gestern vor."
+          ],
+          "keywords": [
+            "Tagebuch",
+            "Journal",
+            "Logbuch"
+          ],
+          "name": "Mein Tagebuch",
+          "description": "Erstelle Dein eigenes Tagebuch mithilfe von Alexa. Du kannst hierzu Einträge erstellen, löschen oder von Alexa vorlesen lassen. Finde alte Einträge mithilfe der Suchfunktion oder lass Dir vorlesen was heute vor einem Jahr war.\n\nFür das Tagebuch benötigst Du ein Google Konto um die Daten zu speichern. Alexa hilft Dir beim Verknüpfen dieses Skills mit Deinem Google Konto. Die Tagebucheinträge werden dann in einer Google-Tabelle namens \"Tagebuch\" gespeichert, die Du auch mit den Google Apps nachträglich einfach bearbeiten kannst.",
+          "smallIconUri": "file://assets/images/de-DE_smallIconUri.png",
+          "largeIconUri": "file://assets/images/de-DE_largeIconUri.png"
+        }
+      },
+      "isAvailableWorldwide": true,
+      "testingInstructions": "This skill requires a Google account to store data in a Google drive.",
+      "category": "TO_DO_LISTS_AND_NOTES",
+      "distributionCountries": []
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "arn:aws:lambda:eu-west-1:512841817041:function:AlexaJournal"
+        },
+        "interfaces": [],
+        "regions": {
+          "EU": {
+            "endpoint": {
+              "uri": "arn:aws:lambda:eu-west-1:512841817041:function:AlexaJournal"
+            }
+          },
+          "NA": {
+            "endpoint": {
+              "uri": "arn:aws:lambda:us-east-1:512841817041:function:AlexaJournal"
+            }
+          },
+          "FE": {
+            "endpoint": {
+              "uri": "arn:aws:lambda:ap-northeast-1:512841817041:function:AlexaJournal"
+            }
+          }
+        }
+      }
+    },
+    "manifestVersion": "1.0",
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "locales": {
+        "de-DE": {
+          "privacyPolicyUrl": "https://mein-tagebuch.eu-de.mybluemix.net/de/#datenschutzerkl%C3%A4rung"
+        }
+      },
+      "containsAds": false,
+      "isExportCompliant": true,
+      "isChildDirected": false,
+      "usesPersonalInfo": true
+    }
+  }
+}

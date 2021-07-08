@@ -1,0 +1,12 @@
+{
+  "askcliStatesVersion": "2020-03-31",
+  "profiles": {
+    "default": {
+      "skillId": "amzn1.ask.skill.ad1669b4-291c-4daa-9fbb-fa32b8ea3078",
+      "skillMetadata": {
+        "lastDeployHash": "Uq8ZQ9cXzN40nxWQjZe50McUzxQ="
+      },
+      "code": {}
+    }
+  }
+}
