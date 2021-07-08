@@ -210,11 +210,16 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			case "IN_PROGRESS":
 				switch intent.ConfirmationStatus {
 				case "NONE":
-					if intent.Slots["date"].Value == "" {
+					_, _, dateType := DateFrom(intent.Slots["date"].Value, "")
+					if dateType != DayDate {
+						intent.Slots["date"] = alexa.IntentSlot{
+							Name:               intent.Slots["date"].Name,
+							ConfirmationStatus: intent.Slots["date"].ConfirmationStatus,
+							Resolutions:        intent.Slots["date"].Resolutions,
+							Value:              "",
+						}
 						return pureDelegate(&intent, requestEnv.Session.Attributes)
 					}
-					// TODO: parse Date here into dateString and use it everywhere below.
-					//       if it returns invalid, we can already ask the user again for a date, instead of doing that at the very end.
 					// TODO: could we use intent.Slots["text"].Value == "" instead of !sessionAttributes.Drafting?
 					if _, exists := sessionAttributes.Drafts[intent.Slots["date"].Value]; exists && !sessionAttributes.Drafting {
 						switch intent.Slots["text"].ConfirmationStatus {
