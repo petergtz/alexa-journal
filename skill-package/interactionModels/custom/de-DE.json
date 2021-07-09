@@ -24,7 +24,10 @@
             },
             {
               "name": "text",
-              "type": "AMAZON.SearchQuery"
+              "type": "AMAZON.SearchQuery",
+              "samples": [
+                "{text}"
+              ]
             }
           ],
           "samples": [
@@ -40,29 +43,23 @@
           "name": "ReadExistingEntryAbsoluteDateIntent",
           "slots": [
             {
-              "name": "year",
-              "type": "AMAZON.FOUR_DIGIT_NUMBER"
-            },
-            {
               "name": "date",
               "type": "AMAZON.DATE",
               "samples": [
-                "{date}",
-                "{date} {year}"
+                "{date}"
               ]
             }
           ],
           "samples": [
-            "Was war {date} {year}",
+            "Was war {date}",
             "Lies den Eintrag von {date} vor",
             "Lese einen Eintrag vor",
             "Lies einen Eintrag vor",
-            "Was war am {date} {year} ",
-            "Lies den Eintrag vom {date} {year} vor",
-            "Lies den Eintrag von {date} {year} vor",
-            "Lese den Eintrag vom {date} {year} vor",
-            "Eintrag vom {date} {year} öffnen",
-            "Eintrag vom {date} {year} vorlesen",
+            "Was war am {date}",
+            "Lies den Eintrag vom {date} vor",
+            "Lese den Eintrag vom {date} vor",
+            "Eintrag vom {date} öffnen",
+            "Eintrag vom {date} vorlesen",
             "Vorhandene Einträge vorlesen",
             "Vorhandenen Eintrag vorlesen"
           ]
@@ -221,13 +218,6 @@
           "confirmationRequired": false,
           "prompts": {},
           "slots": [
-            {
-              "name": "year",
-              "type": "AMAZON.FOUR_DIGIT_NUMBER",
-              "elicitationRequired": false,
-              "confirmationRequired": false,
-              "prompts": {}
-            },
             {
               "name": "date",
               "type": "AMAZON.DATE",
@@ -453,5 +443,5 @@
       }
     ]
   },
-  "version": "10"
+  "version": "15"
 }
