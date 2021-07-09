@@ -8,8 +8,6 @@ for region in 'us-east-1' 'eu-west-1' 'ap-northeast-1'; do
     sed -E -i "s/(arn:aws:lambda:$region:512841817041:function:$function_name)(.*)/\1"'"'"/g" skill-package/skill.json
 done
 
-ask diff --target skill
-
 while true; do
     read -p "Deploy changes? " yn
     case $yn in
@@ -19,6 +17,6 @@ while true; do
     esac
 done
 
-ask deploy --force --target skill
+ask deploy
 
 rm -rf hooks
