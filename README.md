@@ -32,4 +32,24 @@ Workflow:
 3. Verify changes work in the [console](https://developer.amazon.com/alexa/console/ask/test/amzn1.ask.skill.ad1669b4-291c-4daa-9fbb-fa32b8ea3078/development/de_DE/)
 4. When everything looks good, deploy to production: `scripts/publish-version.sh`
 
-#### Changes in the Alexa Model
+### Changes in the Alexa Model
+
+Workflow:
+1. Make sure files in `skill-package` are in sync with what's online:
+    ```
+    mv skill-package skill-package.old
+    ask smapi export-package -s amzn1.ask.skill.ad1669b4-291c-4daa-9fbb-fa32b8ea3078 --stage development
+    git diff
+    ```
+2. When trying things with new Lambda service version too, change endpoints to latest lambda version: `scripts/make-endpoint-unqualified.sh`. Deploy? --> yes.
+3. Iterate on changes in model (in the web console) and Lambda service
+4. Verify changes work in the [console](https://developer.amazon.com/alexa/console/ask/test/amzn1.ask.skill.ad1669b4-291c-4daa-9fbb-fa32b8ea3078/development/de_DE/)
+5. When everything looks good:
+    ```
+    mv skill-package skill-package.old
+    ask smapi export-package -s amzn1.ask.skill.ad1669b4-291c-4daa-9fbb-fa32b8ea3078 --stage development
+    git diff
+    scripts/make-endpoint-prod.sh
+    ```
+    - Commit changes.
+    - Submit for certification and publication in web console.
