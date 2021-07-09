@@ -210,15 +210,23 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			case "IN_PROGRESS":
 				switch intent.ConfirmationStatus {
 				case "NONE":
+					if intent.Slots["date"].Value == "" {
+						return pureDelegate(&intent, requestEnv.Session.Attributes)
+					}
 					_, _, dateType := DateFrom(intent.Slots["date"].Value)
 					if dateType != DayDate {
-						intent.Slots["date"] = alexa.IntentSlot{
-							Name:               intent.Slots["date"].Name,
-							ConfirmationStatus: intent.Slots["date"].ConfirmationStatus,
-							Resolutions:        intent.Slots["date"].Resolutions,
-							Value:              "",
+						return &alexa.ResponseEnvelope{Version: "1.0",
+							Response: &alexa.Response{
+								Directives: []interface{}{
+									alexa.DialogDirective{
+										Type:         "Dialog.ElicitSlot",
+										SlotToElicit: "date",
+									},
+								},
+								OutputSpeech: plainText("Das ist ein ungueltiges Datum. Bitte gebe einen genauen Tag fuer das Datum an."),
+							},
+							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
-						return pureDelegate(&intent, requestEnv.Session.Attributes)
 					}
 					// TODO: could we use intent.Slots["text"].Value == "" instead of !sessionAttributes.Drafting?
 					if _, exists := sessionAttributes.Drafts[intent.Slots["date"].Value]; exists && !sessionAttributes.Drafting {
