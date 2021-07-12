@@ -284,7 +284,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						sessionAttributes.Drafts[intent.Slots["date"].Value] = append(sessionAttributes.Drafts[intent.Slots["date"].Value], intent.Slots["text"].Value)
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
-								OutputSpeech: plainText("OK, weiter?"),
+								OutputSpeech: plainText("Ich wiederhole: " + intent.Slots["text"].Value + ".\n\nNaechster Teil bitte?"),
 								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
 								Reprompt:     &alexa.Reprompt{OutputSpeech: plainText("Bitte verfasse den nächsten Teil Deines Eintrags.")},
 							},
@@ -302,8 +302,9 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						}
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
-								OutputSpeech: plainText("Hier ist der letzte Teil Deines Eintrags: " +
-									sessionAttributes.Drafts[intent.Slots["date"].Value][len(sessionAttributes.Drafts[intent.Slots["date"].Value])-1]),
+								OutputSpeech: plainText("Ich wiederhole: " +
+									sessionAttributes.Drafts[intent.Slots["date"].Value][len(sessionAttributes.Drafts[intent.Slots["date"].Value])-1] +
+									"\n\nNaechster Teil bitte?"),
 								Directives: []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
 							},
 							SessionAttributes: requestEnv.Session.Attributes,
