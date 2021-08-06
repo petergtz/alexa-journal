@@ -11,6 +11,7 @@ import (
 	"golang.org/x/text/language"
 
 	skill "github.com/petergtz/alexa-journal"
+	"github.com/petergtz/alexa-journal/dynamodb"
 	"github.com/petergtz/alexa-journal/github"
 	"github.com/petergtz/alexa-journal/locale"
 
@@ -39,7 +40,7 @@ func CreateSkill(logger *zap.SugaredLogger) *skill.JournalSkill {
 		logger,
 		githubErrorReporter,
 		CreateI18nBundle(),
-		&EmptyConfigService{},
+		dynamodb.CreateConfigService("AlexaJournalConfig", "eu-central-1", githubErrorReporter),
 	)
 }
 

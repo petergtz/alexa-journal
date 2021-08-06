@@ -146,6 +146,25 @@
             "Eintrag vom {date} löschen",
             "Eintrag löschen"
           ]
+        },
+        {
+          "name": "BeSuccinctIntent",
+          "slots": [],
+          "samples": [
+            "Fass Dich kurz",
+            "Bitte fasse Dich kurz",
+            "Fasse Dich kurz"
+          ]
+        },
+        {
+          "name": "BeVerboseIntent",
+          "slots": [],
+          "samples": [
+            "Bitte sei ausführlich",
+            "Bitte sei wieder ausführlich",
+            "Sei wieder ausführlich",
+            "Sei ausführlich"
+          ]
         }
       ],
       "types": [
@@ -443,5 +462,5 @@
       }
     ]
   },
-  "version": "15"
+  "version": "25"
 }

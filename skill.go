@@ -185,7 +185,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 		switch intent.Name {
 		case "BeSuccinctIntent":
 			newConfig := config
-			config.BeSuccinct = true
+			newConfig.BeSuccinct = true
 			h.configService.PersistConfig(requestEnv.Session.User.UserID, newConfig)
 			return &alexa.ResponseEnvelope{Version: "1.0",
 				Response: &alexa.Response{
@@ -195,7 +195,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			}
 		case "BeVerboseIntent":
 			newConfig := config
-			config.BeSuccinct = false
+			newConfig.BeSuccinct = false
 			h.configService.PersistConfig(requestEnv.Session.User.UserID, newConfig)
 			return &alexa.ResponseEnvelope{Version: "1.0",
 				Response: &alexa.Response{
@@ -254,29 +254,22 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						sessionAttributes.Drafting = true
 						dateString := ""
 						if intent.Slots["date"].Value != "" {
-							dateString = "für den " + intent.Slots["date"].Value
-						}
-						succinctModeExplanation := ""
-						if config.ShouldExplainAboutSuccinctMode {
-							succinctModeExplanation = l.MustLocalize(&LocalizeConfig{
-								DefaultMessage: &Message{
-									ID:    "ExplainSuccinctMode",
-									Other: "Falls Du diese Erklärung nicht jedes Mal hoeren moechtest, sage Alexa, fasse Dich kurz.",
-								},
+							dateString = l.MustLocalize(&LocalizeConfig{
+								DefaultMessage: &Message{ID: "YouCanNowCreateYourEntryForDate"},
+								TemplateData:   map[string]interface{}{"Date": intent.Slots["date"].Value},
 							})
 						}
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
 								OutputSpeech: plainText(l.MustLocalize(&LocalizeConfig{
-									DefaultMessage: &Message{
-										ID: "YouCanNowCreateYourEntry",
-										Other: "Du kannst Deinen eintrag " + dateString + " nun verfassen; " +
-											"ich werde jeden Teil kurz bestaetigen, sodass du die moeglichkeit hast ihn zu \"korrigieren\" oder \"anzuhoeren\". " +
-											"Sage \"fertig\", wenn Du fertig bist.",
-									},
-								}) + " " + succinctModeExplanation),
+									DefaultMessage: &Message{ID: "YouCanNowCreateYourEntry"},
+									TemplateData:   map[string]interface{}{"ForDate": dateString},
+								})),
 								Directives: []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
-								Reprompt:   &alexa.Reprompt{OutputSpeech: plainText("Du kannst Deinen eintrag " + dateString + " nun verfassen.")},
+								Reprompt: &alexa.Reprompt{OutputSpeech: plainText(l.MustLocalize(&LocalizeConfig{
+									DefaultMessage: &Message{ID: "YouCanNowCreateYourEntry_succinct"},
+									TemplateData:   map[string]interface{}{"ForDate": dateString},
+								}))},
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
@@ -332,7 +325,9 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						sessionAttributes.Drafting = false
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
-								OutputSpeech: plainText("Okay. Abgebrochen.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?"),
+								OutputSpeech: plainText("Okay. Abgebrochen.\n\n" +
+									h.succinctModeExplanation(requestEnv.Session.User.UserID, config, l) + "\n\n" +
+									"Was möchtest Du als nächstes in Deinem Tagebuch machen?"),
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
@@ -340,7 +335,9 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 						if len(sessionAttributes.Drafts[intent.Slots["date"].Value]) == 0 {
 							sessionAttributes.Drafting = false
 							return &alexa.ResponseEnvelope{Version: "1.0",
-								Response:          &alexa.Response{OutputSpeech: plainText("Dein Eintrag ist leer. Es gibt nichts zu speichern. Was möchtest Du als nächstes tun?")},
+								Response: &alexa.Response{OutputSpeech: plainText("Dein Eintrag ist leer. Es gibt nichts zu speichern.\n\n" +
+									h.succinctModeExplanation(requestEnv.Session.User.UserID, config, l) + "\n\n" +
+									"Was möchtest Du als nächstes tun?")},
 								SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 							}
 						}
@@ -366,14 +363,18 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 					delete(sessionAttributes.Drafts, intent.Slots["date"].Value)
 
 					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response:          &alexa.Response{OutputSpeech: plainText("Okay. Gespeichert.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")},
+						Response: &alexa.Response{OutputSpeech: plainText("Okay. Gespeichert.\n\n" +
+							h.succinctModeExplanation(requestEnv.Session.User.UserID, config, l) + "\n\n" +
+							"Was möchtest Du als nächstes in Deinem Tagebuch machen?")},
 						SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 					}
 
 				case "DENIED":
 					sessionAttributes.Drafting = false
 					return &alexa.ResponseEnvelope{Version: "1.0",
-						Response:          &alexa.Response{OutputSpeech: plainText("Okay. Nicht gespeichert.\n\nWas möchtest Du als nächstes in Deinem Tagebuch machen?")},
+						Response: &alexa.Response{OutputSpeech: plainText("Okay. Nicht gespeichert.\n\n" +
+							h.succinctModeExplanation(requestEnv.Session.User.UserID, config, l) + "\n\n" +
+							"Was möchtest Du als nächstes in Deinem Tagebuch machen?")},
 						SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 					}
 				default:
@@ -616,6 +617,20 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 	default:
 		panic(errors.New("Invalid Request"))
 	}
+}
+
+func (h *JournalSkill) succinctModeExplanation(userID string, config Config, l *locale.Localizer) string {
+	if config.ShouldExplainAboutSuccinctMode {
+		config.ShouldExplainAboutSuccinctMode = false
+		h.configService.PersistConfig(userID, config)
+		return l.MustLocalize(&LocalizeConfig{
+			DefaultMessage: &Message{
+				ID:    "SuccinctModeExplanation",
+				Other: "Übrigens, falls Du keine langen Erklärungen haben möchtest, sage einfach \"Alexa, fasse Dich kurz\".",
+			},
+		})
+	}
+	return ""
 }
 
 func listAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttributes map[string]interface{}, errorInterpreter ErrorInterpreter) *alexa.ResponseEnvelope {
