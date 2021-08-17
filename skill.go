@@ -75,7 +75,7 @@ func NewJournalSkill(journalProvider JournalProvider,
 	}
 }
 
-const helpText = "Mit diesem Skill kannst Du Tagebucheintraege erstellen oder vorlesen lassen. Sage z.B. \"Neuen Eintrag erstellen\". Oder \"Lies mir den Eintrag von gestern vor\". Oder \"Was war heute vor 20 Jahren?\". Oder \"Was war im August 1994?\"."
+const helpText = "Mit diesem Skill kannst Du Tagebucheintraege erstellen oder vorlesen lassen. Sage z.B. \"Neuen Eintrag erstellen\". Oder \"Lies mir den Eintrag von gestern vor\". Oder \"Was war heute vor 20 Jahren?\". Oder \"Was war im August 1994?\". Oder \"Suche nach Geburtstag\". Wenn ich mich kurz fassen soll, sage \"Fasse Dich kurz\"."
 
 var months = map[string]int{
 	"januar":    1,
