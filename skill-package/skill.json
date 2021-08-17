@@ -15,7 +15,8 @@
             "Logbuch"
           ],
           "name": "Mein Tagebuch",
-          "description": "Erstelle Dein eigenes Tagebuch mithilfe von Alexa. Du kannst hierzu Einträge erstellen, löschen oder von Alexa vorlesen lassen. Finde alte Einträge mithilfe der Suchfunktion oder lass Dir vorlesen was heute vor einem Jahr war.\n\nFür das Tagebuch benötigst Du ein Google Konto um die Daten zu speichern. Alexa hilft Dir beim Verknüpfen dieses Skills mit Deinem Google Konto. Die Tagebucheinträge werden dann in einer Google-Tabelle namens \"Tagebuch\" gespeichert, die Du auch mit den Google Apps nachträglich einfach bearbeiten kannst.",
+          "description": "Erstelle Dein eigenes Tagebuch mithilfe von Alexa. Du kannst hierzu Einträge erstellen, löschen oder von Alexa vorlesen lassen. Finde alte Einträge mithilfe der Suchfunktion oder lass Dir vorlesen was heute vor einem Jahr war.\n\nFür das Tagebuch benötigst Du ein Google Konto um die Daten zu speichern. Alexa hilft Dir beim Verknüpfen dieses Skills mit Deinem Google Konto. Die Tagebucheinträge werden dann in einer Google-Tabelle namens \"Tagebuch\" gespeichert, die Du auch mit den Google Apps nachträglich einfach bearbeiten kannst.\n\nAnfragen für neue Features bzw. Rückmeldung von Dingen, die verbessert werden könnten, bitte auf https://github.com/petergtz/alexa-journal/issues/new.",
+          "updatesDescription": "Sage \"Fasse Dich kurz\" und Alexa lässt von jetzt an die ausführlichen Erklärungen beim Erstellen eines neuen Eintrags weg. Das ganze kann rückgängig gemacht werden, indem man sagt \"Sei ausführlich\".",
           "smallIconUri": "file://assets/images/de-DE_smallIconUri.png",
           "largeIconUri": "file://assets/images/de-DE_largeIconUri.png"
         }
