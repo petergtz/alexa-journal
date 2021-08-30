@@ -13,7 +13,7 @@ import (
 	skill "github.com/petergtz/alexa-journal"
 	"github.com/petergtz/alexa-journal/dynamodb"
 	"github.com/petergtz/alexa-journal/github"
-	"github.com/petergtz/alexa-journal/locale"
+	"github.com/petergtz/alexa-journal/locale/resources"
 
 	"github.com/petergtz/alexa-journal/drive"
 
@@ -53,6 +53,6 @@ func CreateI18nBundle() *i18n.Bundle {
 	i18nBundle := i18n.NewBundle(language.English)
 	i18nBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
-	i18nBundle.MustParseMessageFileBytes(locale.DeDe, "active.de.toml")
+	i18nBundle.MustParseMessageFileBytes(resources.DeDe, "active.de.toml")
 	return i18nBundle
 }

@@ -4,6 +4,8 @@ go 1.16
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
+	github.com/alecthomas/units v0.0.0-20210208195552-ff826a37aa15 // indirect
 	github.com/aws/aws-sdk-go v1.19.42
 	github.com/aws/aws-sdk-go-v2 v1.7.1
 	github.com/aws/aws-sdk-go-v2/config v1.5.0
@@ -17,6 +19,7 @@ require (
 	github.com/onsi/gomega v1.14.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/petergtz/go-alexa v0.0.0-20191008085416-26b4009a4a9e
+	github.com/petergtz/pegomock v2.9.0+incompatible // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/math v0.0.0-20141027224758-f2ed9e40e245
 	github.com/rickb777/date v1.15.3
@@ -25,5 +28,7 @@ require (
 	go.uber.org/zap v1.18.1
 	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914
 	golang.org/x/text v0.3.6
+	golang.org/x/tools v0.1.5 // indirect
 	google.golang.org/api v0.52.0
+	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 )
