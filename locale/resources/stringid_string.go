@@ -14,11 +14,11 @@ func _() {
 	_ = x[YouCanNowCreateYourEntry_succinct-3]
 	_ = x[ForDate-4]
 	_ = x[IRepeat-5]
-	_ = x[NextPartPlease-6]
+	_ = x[NextPartPleaseReprompt-6]
 	_ = x[YourEntryIsEmptyNoRepeat-7]
 	_ = x[YourEntryIsEmptyNoCorrect-8]
 	_ = x[OkayCorrectPart-9]
-	_ = x[CorrectPart-10]
+	_ = x[CorrectPartReprompt-10]
 	_ = x[NewEntryAborted-11]
 	_ = x[YourEntryIsEmptyNoSave-12]
 	_ = x[NewEntryConfirmation-13]
@@ -58,9 +58,9 @@ func _() {
 	_ = x[EndMarker-47]
 }
 
-const _StringID_name = "YourJournalIsNowOpenNewEntryDraftExistsYouCanNowCreateYourEntryYouCanNowCreateYourEntry_succinctForDateIRepeatNextPartPleaseYourEntryIsEmptyNoRepeatYourEntryIsEmptyNoCorrectOkayCorrectPartCorrectPartNewEntryAbortedYourEntryIsEmptyNoSaveNewEntryConfirmationNewEntryConfirmationRepromptOkaySavedOkayNotSavedSuccinctModeExplanationWhatDoYouWantToDoNextDidNotUnderstandTryAgainExampleRelativeDateQueryExampleDateQueryCouldNotGetEntryCouldNotGetEntriesNoEntriesInTimeRangeFoundEntriesInTimeRangeReadEntryJournalIsEmptyNewEntryExampleEntryForDateNotFoundSearchErrorSearchNoResultsFoundSearchResultsDeleteEntryNotFoundDeleteEntryCouldNotGetEntryDeleteEntryConfirmationDeleteEntryErrorOkayDeletedOkayNotDeletedLinkWithGoogleAccountOkayWillBeSuccinctOkayWillBeVerboseInvalidDateInternalErrorHelpShortPauseLongPauseEndMarker"
+const _StringID_name = "YourJournalIsNowOpenNewEntryDraftExistsYouCanNowCreateYourEntryYouCanNowCreateYourEntry_succinctForDateIRepeatNextPartPleaseRepromptYourEntryIsEmptyNoRepeatYourEntryIsEmptyNoCorrectOkayCorrectPartCorrectPartRepromptNewEntryAbortedYourEntryIsEmptyNoSaveNewEntryConfirmationNewEntryConfirmationRepromptOkaySavedOkayNotSavedSuccinctModeExplanationWhatDoYouWantToDoNextDidNotUnderstandTryAgainExampleRelativeDateQueryExampleDateQueryCouldNotGetEntryCouldNotGetEntriesNoEntriesInTimeRangeFoundEntriesInTimeRangeReadEntryJournalIsEmptyNewEntryExampleEntryForDateNotFoundSearchErrorSearchNoResultsFoundSearchResultsDeleteEntryNotFoundDeleteEntryCouldNotGetEntryDeleteEntryConfirmationDeleteEntryErrorOkayDeletedOkayNotDeletedLinkWithGoogleAccountOkayWillBeSuccinctOkayWillBeVerboseInvalidDateInternalErrorHelpShortPauseLongPauseEndMarker"
 
-var _StringID_index = [...]uint16{0, 20, 39, 63, 96, 103, 110, 124, 148, 173, 188, 199, 214, 236, 256, 284, 293, 305, 328, 349, 373, 397, 413, 429, 447, 472, 490, 499, 513, 528, 548, 559, 579, 592, 611, 638, 661, 677, 688, 702, 723, 741, 758, 769, 782, 786, 796, 805, 814}
+var _StringID_index = [...]uint16{0, 20, 39, 63, 96, 103, 110, 132, 156, 181, 196, 215, 230, 252, 272, 300, 309, 321, 344, 365, 389, 413, 429, 445, 463, 488, 506, 515, 529, 544, 564, 575, 595, 608, 627, 654, 677, 693, 704, 718, 739, 757, 774, 785, 798, 802, 812, 821, 830}
 
 func (i StringID) String() string {
 	if i < 0 || i >= StringID(len(_StringID_index)-1) {

@@ -10,11 +10,11 @@ const (
 	YouCanNowCreateYourEntry_succinct
 	ForDate
 	IRepeat
-	NextPartPlease
+	NextPartPleaseReprompt
 	YourEntryIsEmptyNoRepeat
 	YourEntryIsEmptyNoCorrect
 	OkayCorrectPart
-	CorrectPart
+	CorrectPartReprompt
 	NewEntryAborted
 	YourEntryIsEmptyNoSave
 	NewEntryConfirmation

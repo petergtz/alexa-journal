@@ -273,7 +273,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							Response: &alexa.Response{
 								OutputSpeech: plainText(l.Get(r.OkayCorrectPart)),
 								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
-								Reprompt:     &alexa.Reprompt{OutputSpeech: plainText(l.Get(r.CorrectPart))},
+								Reprompt:     &alexa.Reprompt{OutputSpeech: plainText(l.Get(r.CorrectPartReprompt))},
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
@@ -315,7 +315,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							Response: &alexa.Response{
 								OutputSpeech: plainText(l.GetTemplated(r.IRepeat, map[string]interface{}{"Text": intent.Slots["text"].Value})),
 								Directives:   []interface{}{alexa.DialogDirective{Type: "Dialog.ElicitSlot", SlotToElicit: "text"}},
-								Reprompt:     &alexa.Reprompt{OutputSpeech: plainText(l.Get(r.NextPartPlease))},
+								Reprompt:     &alexa.Reprompt{OutputSpeech: plainText(l.Get(r.NextPartPleaseReprompt))},
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
