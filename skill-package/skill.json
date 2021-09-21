@@ -56,7 +56,7 @@
       "allowsPurchases": false,
       "locales": {
         "de-DE": {
-          "privacyPolicyUrl": "https://mein-tagebuch.eu-de.mybluemix.net/de/#datenschutzerkl%C3%A4rung"
+          "privacyPolicyUrl": "https://mein-tagebuch.net/de/#datenschutzerkl%C3%A4rung"
         }
       },
       "containsAds": false,
