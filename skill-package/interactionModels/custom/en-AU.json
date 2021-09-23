@@ -1,0 +1,458 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "my journal",
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "NewEntryIntent",
+          "slots": [
+            {
+              "name": "date",
+              "type": "AMAZON.DATE"
+            },
+            {
+              "name": "text",
+              "type": "AMAZON.SearchQuery",
+              "samples": [
+                "{text}"
+              ]
+            }
+          ],
+          "samples": [
+            "Create a new entry for {date}",
+            "Create a new entry",
+            "Start a new entry",
+            "New entry",
+            "New log entry",
+            "Create a new log entry",
+            "Create a new journal entry"
+          ]
+        },
+        {
+          "name": "ReadExistingEntryAbsoluteDateIntent",
+          "slots": [
+            {
+              "name": "date",
+              "type": "AMAZON.DATE",
+              "samples": [
+                "{date}"
+              ]
+            }
+          ],
+          "samples": [
+            "What was on {date}",
+            "Read the entry from {date}",
+            "Read an entry",
+            "Open the entry from {date}",
+            "Read an existing entry",
+            "Read existing entries"
+          ]
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "ReadExistingEntryRelativeDateIntent",
+          "slots": [
+            {
+              "name": "number",
+              "type": "AMAZON.NUMBER"
+            },
+            {
+              "name": "unit",
+              "type": "Unit"
+            }
+          ],
+          "samples": [
+            "What was today {number} {unit} ago"
+          ]
+        },
+        {
+          "name": "ListAllEntriesInDate",
+          "slots": [
+            {
+              "name": "date",
+              "type": "AMAZON.DATE"
+            }
+          ],
+          "samples": [
+            "Which entries are there for {date}",
+            "All entries from {date}",
+            "All entries in {date}",
+            "Which entries exist in {date}",
+            "List all entries from {date}"
+          ]
+        },
+        {
+          "name": "ReadAllEntriesInDate",
+          "slots": [
+            {
+              "name": "date",
+              "type": "AMAZON.DATE"
+            }
+          ],
+          "samples": [
+            "What was in {date}",
+            "Read all entries from {date}",
+            "Read all entries in {date}"
+          ]
+        },
+        {
+          "name": "SearchIntent",
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "Search for {query}",
+            "Search {query}",
+            "Look for {query}",
+            "Find entries for {query}",
+            "Search"
+          ]
+        },
+        {
+          "name": "DeleteEntryIntent",
+          "slots": [
+            {
+              "name": "date",
+              "type": "AMAZON.DATE"
+            }
+          ],
+          "samples": [
+            "Delete entry from {date}",
+            "Delete entry",
+            "Remove entry from {date}",
+            "Remove entry"
+          ]
+        },
+        {
+          "name": "BeSuccinctIntent",
+          "slots": [],
+          "samples": [
+            "Be curt",
+            "Please be curt",
+            "Keep it short",
+            "Be brief",
+            "Please keep it short",
+            "Please be brief"
+          ]
+        },
+        {
+          "name": "BeVerboseIntent",
+          "slots": [],
+          "samples": [
+            "Be verbose",
+            "Please be verbose"
+          ]
+        }
+      ],
+      "types": [
+        {
+          "values": [
+            {
+              "id": "DAYS",
+              "name": {
+                "value": "Days",
+                "synonyms": [
+                  "Day"
+                ]
+              }
+            },
+            {
+              "id": "MONTHS",
+              "name": {
+                "value": "Months",
+                "synonyms": [
+                  "Month"
+                ]
+              }
+            },
+            {
+              "id": "YEARS",
+              "name": {
+                "value": "Years",
+                "synonyms": [
+                  "Year"
+                ]
+              }
+            }
+          ],
+          "name": "Unit"
+        }
+      ]
+    },
+    "dialog": {
+      "intents": [
+        {
+          "name": "NewEntryIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "date",
+              "type": "AMAZON.DATE",
+              "elicitationRequired": true,
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.1245623180245.321245383492"
+              }
+            },
+            {
+              "name": "text",
+              "type": "AMAZON.SearchQuery",
+              "elicitationRequired": true,
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.1245623180245.1297424589269"
+              }
+            }
+          ]
+        },
+        {
+          "name": "ReadExistingEntryAbsoluteDateIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "date",
+              "type": "AMAZON.DATE",
+              "elicitationRequired": true,
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.1231923745789.768992757196"
+              }
+            }
+          ]
+        },
+        {
+          "name": "ReadExistingEntryRelativeDateIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "number",
+              "type": "AMAZON.NUMBER",
+              "elicitationRequired": true,
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.922944218520.1497640595622"
+              }
+            },
+            {
+              "name": "unit",
+              "type": "Unit",
+              "elicitationRequired": true,
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.922944218520.834212133831"
+              }
+            }
+          ],
+          "delegationStrategy": "ALWAYS"
+        },
+        {
+          "name": "SearchIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "query",
+              "type": "AMAZON.SearchQuery",
+              "elicitationRequired": true,
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.918336650218.344852474828"
+              }
+            }
+          ],
+          "delegationStrategy": "ALWAYS"
+        },
+        {
+          "name": "DeleteEntryIntent",
+          "confirmationRequired": false,
+          "prompts": {},
+          "slots": [
+            {
+              "name": "date",
+              "type": "AMAZON.DATE",
+              "elicitationRequired": true,
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.277245929653.1204341499134"
+              }
+            }
+          ],
+          "delegationStrategy": "SKILL_RESPONSE"
+        }
+      ],
+      "delegationStrategy": "SKILL_RESPONSE"
+    },
+    "prompts": [
+      {
+        "id": "Elicit.Slot.1245623180245.1297424589269",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "What should be the content of this new entry?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.1245623180245.321245383492",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "For which date should I create the new entry?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.776005764143.80747049922",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Entry from which year?"
+          },
+          {
+            "type": "PlainText",
+            "value": "Entry for which date?"
+          }
+        ]
+      },
+      {
+        "id": "Slot.Validation.231783751652.1404829072228.1478270692740",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Wrong time range"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.231783751652.1151133788528",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "From which year?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.231783751652.755945983227",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Which month?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.231783751652.1151182401806",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Which day?"
+          }
+        ]
+      },
+      {
+        "id": "Slot.Validation.231783751652.1151182401806.1504171673313",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "The maximum is thirty one."
+          }
+        ]
+      },
+      {
+        "id": "Slot.Validation.231783751652.1151182401806.1047158167529",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Too small."
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.1205185079740.28250208289",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Which month?"
+          }
+        ]
+      },
+      {
+        "id": "Slot.Validation.1495799678220.1512244555631.883584846627",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "Please provide a valid month."
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.1231923745789.768992757196",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "From what date should I read an entry?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.918336650218.344852474828",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "What should I searech for?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.277245929653.1204341499134",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "For which date?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.922944218520.834212133831",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "I didn\u0027t understand that. Can you repeat it please?"
+          }
+        ]
+      },
+      {
+        "id": "Elicit.Slot.922944218520.1497640595622",
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "I didn\u0027t understand that. Can you repeat it please?"
+          }
+        ]
+      }
+    ]
+  },
+  "version": "5"
+}
