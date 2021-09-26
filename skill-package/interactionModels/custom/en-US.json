@@ -37,7 +37,8 @@
             "New entry",
             "New log entry",
             "Create a new log entry",
-            "Create a new journal entry"
+            "Create a new journal entry",
+            "Draft new entry"
           ]
         },
         {
@@ -150,7 +151,9 @@
             "Keep it short",
             "Be brief",
             "Please keep it short",
-            "Please be brief"
+            "Please be brief",
+            "Be succinct",
+            "Please be succinct"
           ]
         },
         {
@@ -421,7 +424,7 @@
         "variations": [
           {
             "type": "PlainText",
-            "value": "What should I searech for?"
+            "value": "What should I search for?"
           }
         ]
       },
