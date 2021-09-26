@@ -70,11 +70,14 @@ var DeDe = []byte(tomlStringFrom(map[StringID]string{
 	OkayDeleted: `Okay. Geloescht.`,
 
 	// Not covered yet:
-	OkayNotDeleted:        `Okay. Nicht geloescht.`,
+	OkayNotDeleted: `Okay. Nicht geloescht.`,
+
 	LinkWithGoogleAccount: `Bevor Du Dein Tagebuch öffnen kannst, verbinde bitte zuerst Alexa mit Deinem Google Account in der Alexa App.`,
-	OkayWillBeSuccinct:    `Okay. Ich werde mich kurzfassen. Falls ich wieder ausfuehrlicher sein soll, sage Alexa, sei ausfuehrlich.`,
-	OkayWillBeVerbose:     `Okay. Ich werde ausführlich sein. Falls ich mich wieder kurzfassen soll, sage Alexa, fasse Dich kurz.`,
-	InternalError:         `Es ist ein interner Fehler aufgetreten. Ich habe den Entwickler bereits informiert, er wird sich um das Problem kümmern. Bitte versuche es zu einem späteren Zeitpunkt noch einmal.`,
+
+	// Not covered yet:
+	OkayWillBeSuccinct: `Okay. Ich werde mich kurzfassen. Falls ich wieder ausfuehrlicher sein soll, sage Alexa, sei ausfuehrlich.`,
+	OkayWillBeVerbose:  `Okay. Ich werde ausführlich sein. Falls ich mich wieder kurzfassen soll, sage Alexa, fasse Dich kurz.`,
+	InternalError:      `Es ist ein interner Fehler aufgetreten. Ich habe den Entwickler bereits informiert, er wird sich um das Problem kümmern. Bitte versuche es zu einem späteren Zeitpunkt noch einmal.`,
 
 	Help: `Mit diesem Skill kannst Du Tagebucheintraege erstellen oder vorlesen lassen. Sage z.B. \"Neuen Eintrag erstellen\". Oder \"Lies mir den Eintrag von gestern vor\". Oder \"Was war heute vor 20 Jahren?\". Oder \"Was war im August 1994?\".`,
 	// TODO: add to Help ` Oder \"Suche nach Geburtstag\". Wenn ich mich kurz fassen soll, sage \"Fasse Dich kurz\".`,
@@ -184,11 +187,14 @@ var EnUs = []byte(tomlStringFrom(map[StringID]string{
 	OkayDeleted: `Okay. Deleted.`,
 
 	// Not covered yet:
-	OkayNotDeleted:        `Okay. Not deleted.`,
+	OkayNotDeleted: `Okay. Not deleted.`,
+
 	LinkWithGoogleAccount: `Before you can open your journal, please link Alexa with your Google account in your Alexa app.`,
-	OkayWillBeSuccinct:    `Okay. I'll be brief. In case I should be verbose again, say \"Alexa, be verbose\".`,
-	OkayWillBeVerbose:     `Okay. I'll be verbose. In case I should be brief again, say \"Alexa, be brief\".`,
-	InternalError:         `There was an internal error. I have already informed the engineer who will take care of the problem. Please try again at a later.`,
+
+	// Not covered yet:
+	OkayWillBeSuccinct: `Okay. I'll be brief. In case I should be verbose again, say \"Alexa, be verbose\".`,
+	OkayWillBeVerbose:  `Okay. I'll be verbose. In case I should be brief again, say \"Alexa, be brief\".`,
+	InternalError:      `There was an internal error. I have already informed the engineer who will take care of the problem. Please try again at a later.`,
 
 	Help: `With this skill, you create journal entries and have them read for you. Say e.g. \"new entry\" . Or \"Read the entry from yesterday\". Or \"What was 20 years ago today?\". Oder \"What was in August 1994?\".`,
 	// TODO: add to Help ` Oder \"Suche nach Geburtstag\". Wenn ich mich kurz fassen soll, sage \"Fasse Dich kurz\".`,
