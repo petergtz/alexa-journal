@@ -9,8 +9,8 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	. "github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/petergtz/alexa-journal/locale"
+	"github.com/petergtz/alexa-journal/locale/resources"
 	r "github.com/petergtz/alexa-journal/locale/resources"
 
 	"github.com/petergtz/alexa-journal/util"
@@ -32,8 +32,13 @@ type JournalProvider interface {
 	Get(accessToken string) (j.Journal, error)
 }
 
+type Localizer interface {
+	Get(ids ...resources.StringID) string
+	GetTemplated(id resources.StringID, templateData interface{}) string
+}
+
 type ErrorInterpreter interface {
-	Interpret(error) string
+	Interpret(error, Localizer) string
 }
 
 type ErrorReporter interface {
@@ -112,7 +117,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 		return &alexa.ResponseEnvelope{Version: "1.0",
 			Response: &alexa.Response{
 				OutputSpeech: plainText(i18n.NewLocalizer(h.i18nBundle, requestEnv.Request.Locale).
-					MustLocalize(&LocalizeConfig{DefaultMessage: &Message{ID: r.LinkWithGoogleAccount.String()}})),
+					MustLocalize(&i18n.LocalizeConfig{DefaultMessage: &i18n.Message{ID: r.LinkWithGoogleAccount.String()}})),
 				Card:             &alexa.Card{Type: "LinkAccount"},
 				ShouldSessionEnd: true,
 			},
@@ -140,7 +145,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 		journal, e := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
 		if e != nil {
 			log.Errorw("Error while getting journal via journalProvider", "error", e)
-			return plainTextRespEnv(h.errorInterpreter.Interpret(e), requestEnv.Session.Attributes)
+			return plainTextRespEnv(h.errorInterpreter.Interpret(e, l), requestEnv.Session.Attributes)
 		}
 		log.Debugw("Journal downloaded")
 
@@ -239,7 +244,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
-					case "wiederhole", "wiederholen":
+					case l.Get(r.Repeat1), l.Get(r.Repeat2):
 						if len(sessionAttributes.Drafts[intent.Slots["date"].Value]) == 0 {
 							return &alexa.ResponseEnvelope{Version: "1.0",
 								Response: &alexa.Response{
@@ -258,7 +263,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							},
 							SessionAttributes: requestEnv.Session.Attributes,
 						}
-					case "korrigiere", "korrigieren":
+					case l.Get(r.Correct1), l.Get(r.Correct2):
 						if len(sessionAttributes.Drafts[intent.Slots["date"].Value]) == 0 {
 							return &alexa.ResponseEnvelope{Version: "1.0",
 								Response: &alexa.Response{
@@ -277,7 +282,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
-					case "abbrechen":
+					case l.Get(r.Abort):
 						sessionAttributes.Drafting = false
 						return &alexa.ResponseEnvelope{Version: "1.0",
 							Response: &alexa.Response{
@@ -287,7 +292,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 							},
 							SessionAttributes: mapStringInterfaceFrom(sessionAttributes),
 						}
-					case "fertig":
+					case l.Get(r.Done):
 						if len(sessionAttributes.Drafts[intent.Slots["date"].Value]) == 0 {
 							sessionAttributes.Drafting = false
 							return &alexa.ResponseEnvelope{Version: "1.0",
@@ -392,7 +397,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 
 				text, e := journal.GetEntry(entryDate)
 				if e != nil {
-					return plainTextRespEnv(l.Get(r.CouldNotGetEntry, r.ShortPause)+h.errorInterpreter.Interpret(e),
+					return plainTextRespEnv(l.Get(r.CouldNotGetEntry, r.ShortPause)+h.errorInterpreter.Interpret(e, l),
 						requestEnv.Session.Attributes)
 				}
 				if text != "" {
@@ -409,7 +414,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 				}
 				closestEntry, e := journal.GetClosestEntry(entryDate)
 				if e != nil {
-					return plainTextRespEnv(l.Get(r.CouldNotGetEntry, r.ShortPause)+h.errorInterpreter.Interpret(e), requestEnv.Session.Attributes)
+					return plainTextRespEnv(l.Get(r.CouldNotGetEntry, r.ShortPause)+h.errorInterpreter.Interpret(e, l), requestEnv.Session.Attributes)
 				}
 				if closestEntry == (j.Entry{}) {
 					return &alexa.ResponseEnvelope{Version: "1.0",
@@ -458,7 +463,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 
 			text, e := journal.GetEntry(entryDate)
 			if e != nil {
-				return plainTextRespEnv(l.Get(r.CouldNotGetEntry, r.ShortPause)+h.errorInterpreter.Interpret(e),
+				return plainTextRespEnv(l.Get(r.CouldNotGetEntry, r.ShortPause)+h.errorInterpreter.Interpret(e, l),
 					requestEnv.Session.Attributes)
 			}
 			if text != "" {
@@ -475,7 +480,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 			}
 			closestEntry, e := journal.GetClosestEntry(entryDate)
 			if e != nil {
-				return plainTextRespEnv(l.Get(r.CouldNotGetEntry, r.ShortPause)+h.errorInterpreter.Interpret(e),
+				return plainTextRespEnv(l.Get(r.CouldNotGetEntry, r.ShortPause)+h.errorInterpreter.Interpret(e, l),
 					requestEnv.Session.Attributes)
 			}
 			if closestEntry == (j.Entry{}) {
@@ -499,7 +504,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 		case "SearchIntent":
 			entries, e := journal.SearchFor(intent.Slots["query"].Value)
 			if e != nil {
-				return plainTextRespEnv(l.Get(r.SearchError, r.ShortPause)+h.errorInterpreter.Interpret(e),
+				return plainTextRespEnv(l.Get(r.SearchError, r.ShortPause)+h.errorInterpreter.Interpret(e, l),
 					requestEnv.Session.Attributes)
 			}
 			if len(entries) == 0 {
@@ -545,7 +550,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 
 					entry, e := journal.GetEntry(date)
 					if e != nil {
-						return plainTextRespEnv(l.Get(r.DeleteEntryCouldNotGetEntry, r.ShortPause)+h.errorInterpreter.Interpret(e),
+						return plainTextRespEnv(l.Get(r.DeleteEntryCouldNotGetEntry, r.ShortPause)+h.errorInterpreter.Interpret(e, l),
 							requestEnv.Session.Attributes)
 					}
 					if entry == "" {
@@ -565,7 +570,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 
 					e = journal.DeleteEntry(date)
 					if e != nil {
-						return plainTextRespEnv(l.Get(r.DeleteEntryError, r.ShortPause)+h.errorInterpreter.Interpret(e),
+						return plainTextRespEnv(l.Get(r.DeleteEntryError, r.ShortPause)+h.errorInterpreter.Interpret(e, l),
 							requestEnv.Session.Attributes)
 					}
 
@@ -613,7 +618,7 @@ func (h *JournalSkill) succinctModeExplanation(userID string, config Config, l *
 func listAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttributes map[string]interface{}, errorInterpreter ErrorInterpreter, l *locale.Localizer) *alexa.ResponseEnvelope {
 	entries, e := journal.GetEntries(dateSlotValue[:7])
 	if e != nil {
-		return plainTextRespEnv(l.Get(r.CouldNotGetEntries, r.ShortPause)+errorInterpreter.Interpret(e),
+		return plainTextRespEnv(l.Get(r.CouldNotGetEntries, r.ShortPause)+errorInterpreter.Interpret(e, l),
 			sessionAttributes)
 	}
 	if len(entries) == 0 {
@@ -644,7 +649,7 @@ func listAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttri
 func readAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttributes map[string]interface{}, errorInterpreter ErrorInterpreter, l *locale.Localizer) *alexa.ResponseEnvelope {
 	entries, e := journal.GetEntries(dateSlotValue[:7])
 	if e != nil {
-		return plainTextRespEnv(l.Get(r.CouldNotGetEntries, r.ShortPause)+errorInterpreter.Interpret(e),
+		return plainTextRespEnv(l.Get(r.CouldNotGetEntries, r.ShortPause)+errorInterpreter.Interpret(e, l),
 			sessionAttributes)
 	}
 	if len(entries) == 0 {
@@ -713,7 +718,7 @@ func pureDelegate(intent *alexa.Intent, sessionAttributes map[string]interface{}
 
 func internalError(l *i18n.Localizer) *alexa.ResponseEnvelope {
 	return &alexa.ResponseEnvelope{Version: "1.0", Response: &alexa.Response{
-		OutputSpeech:     plainText(l.MustLocalize(&LocalizeConfig{MessageID: r.InternalError.String()})),
+		OutputSpeech:     plainText(l.MustLocalize(&i18n.LocalizeConfig{MessageID: r.InternalError.String()})),
 		ShouldSessionEnd: true,
 	}}
 }

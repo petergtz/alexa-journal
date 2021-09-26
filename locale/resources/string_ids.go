@@ -49,7 +49,17 @@ const (
 	InvalidDate
 	InternalError
 	Help
+	Done
+	Correct1
+	Correct2
+	Repeat1
+	Repeat2
+	Abort
 	ShortPause
 	LongPause
 	EndMarker
+	DriveCannotCreateFileError
+	DriveMultipleFilesFoundError
+	DriveSheetNotFoundError
+	DriveUnknownError
 )

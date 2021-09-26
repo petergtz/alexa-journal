@@ -53,14 +53,24 @@ func _() {
 	_ = x[InvalidDate-42]
 	_ = x[InternalError-43]
 	_ = x[Help-44]
-	_ = x[ShortPause-45]
-	_ = x[LongPause-46]
-	_ = x[EndMarker-47]
+	_ = x[Done-45]
+	_ = x[Correct1-46]
+	_ = x[Correct2-47]
+	_ = x[Repeat1-48]
+	_ = x[Repeat2-49]
+	_ = x[Abort-50]
+	_ = x[ShortPause-51]
+	_ = x[LongPause-52]
+	_ = x[EndMarker-53]
+	_ = x[DriveCannotCreateFileError-54]
+	_ = x[DriveMultipleFilesFoundError-55]
+	_ = x[DriveSheetNotFoundError-56]
+	_ = x[DriveUnknownError-57]
 }
 
-const _StringID_name = "YourJournalIsNowOpenNewEntryDraftExistsYouCanNowCreateYourEntryYouCanNowCreateYourEntry_succinctForDateIRepeatNextPartPleaseRepromptYourEntryIsEmptyNoRepeatYourEntryIsEmptyNoCorrectOkayCorrectPartCorrectPartRepromptNewEntryAbortedYourEntryIsEmptyNoSaveNewEntryConfirmationNewEntryConfirmationRepromptOkaySavedOkayNotSavedSuccinctModeExplanationWhatDoYouWantToDoNextDidNotUnderstandTryAgainExampleRelativeDateQueryExampleDateQueryCouldNotGetEntryCouldNotGetEntriesNoEntriesInTimeRangeFoundEntriesInTimeRangeReadEntryJournalIsEmptyNewEntryExampleEntryForDateNotFoundSearchErrorSearchNoResultsFoundSearchResultsDeleteEntryNotFoundDeleteEntryCouldNotGetEntryDeleteEntryConfirmationDeleteEntryErrorOkayDeletedOkayNotDeletedLinkWithGoogleAccountOkayWillBeSuccinctOkayWillBeVerboseInvalidDateInternalErrorHelpShortPauseLongPauseEndMarker"
+const _StringID_name = "YourJournalIsNowOpenNewEntryDraftExistsYouCanNowCreateYourEntryYouCanNowCreateYourEntry_succinctForDateIRepeatNextPartPleaseRepromptYourEntryIsEmptyNoRepeatYourEntryIsEmptyNoCorrectOkayCorrectPartCorrectPartRepromptNewEntryAbortedYourEntryIsEmptyNoSaveNewEntryConfirmationNewEntryConfirmationRepromptOkaySavedOkayNotSavedSuccinctModeExplanationWhatDoYouWantToDoNextDidNotUnderstandTryAgainExampleRelativeDateQueryExampleDateQueryCouldNotGetEntryCouldNotGetEntriesNoEntriesInTimeRangeFoundEntriesInTimeRangeReadEntryJournalIsEmptyNewEntryExampleEntryForDateNotFoundSearchErrorSearchNoResultsFoundSearchResultsDeleteEntryNotFoundDeleteEntryCouldNotGetEntryDeleteEntryConfirmationDeleteEntryErrorOkayDeletedOkayNotDeletedLinkWithGoogleAccountOkayWillBeSuccinctOkayWillBeVerboseInvalidDateInternalErrorHelpDoneCorrect1Correct2Repeat1Repeat2AbortShortPauseLongPauseEndMarkerDriveCannotCreateFileErrorDriveMultipleFilesFoundErrorDriveSheetNotFoundErrorDriveUnknownError"
 
-var _StringID_index = [...]uint16{0, 20, 39, 63, 96, 103, 110, 132, 156, 181, 196, 215, 230, 252, 272, 300, 309, 321, 344, 365, 389, 413, 429, 445, 463, 488, 506, 515, 529, 544, 564, 575, 595, 608, 627, 654, 677, 693, 704, 718, 739, 757, 774, 785, 798, 802, 812, 821, 830}
+var _StringID_index = [...]uint16{0, 20, 39, 63, 96, 103, 110, 132, 156, 181, 196, 215, 230, 252, 272, 300, 309, 321, 344, 365, 389, 413, 429, 445, 463, 488, 506, 515, 529, 544, 564, 575, 595, 608, 627, 654, 677, 693, 704, 718, 739, 757, 774, 785, 798, 802, 806, 814, 822, 829, 836, 841, 851, 860, 869, 895, 923, 946, 963}
 
 func (i StringID) String() string {
 	if i < 0 || i >= StringID(len(_StringID_index)-1) {

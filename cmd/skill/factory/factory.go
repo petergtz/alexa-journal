@@ -54,5 +54,6 @@ func CreateI18nBundle() *i18n.Bundle {
 	i18nBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
 	i18nBundle.MustParseMessageFileBytes(resources.DeDe, "active.de.toml")
+	i18nBundle.MustParseMessageFileBytes(resources.EnUs, "active.en.toml")
 	return i18nBundle
 }

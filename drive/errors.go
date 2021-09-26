@@ -2,6 +2,7 @@ package drive
 
 import (
 	journalskill "github.com/petergtz/alexa-journal"
+	r "github.com/petergtz/alexa-journal/locale/resources"
 	"github.com/pkg/errors"
 )
 
@@ -9,18 +10,18 @@ type DriveSheetErrorInterpreter struct {
 	ErrorReporter journalskill.ErrorReporter
 }
 
-func (interpreter *DriveSheetErrorInterpreter) Interpret(e error) string {
+func (interpreter *DriveSheetErrorInterpreter) Interpret(e error, l journalskill.Localizer) string {
 	cause := errors.Cause(e)
 	switch {
 	case IsCannotCreateFileError(cause):
-		return "Ich kann die Datei in Deinem Google Drive nicht anlegen. Bitte stelle sicher, dass Dein Google Drive mir erlaubt, darauf zuzugreifen."
+		return l.Get(r.DriveCannotCreateFileError)
 	case IsMultipleFilesFoundError(cause):
-		return "Ich habe in Deinem Google Drive mehr als eine Datei mit dem Namen Tagebuch gefunden. Bitte Stelle sicher, dass es nur eine Datei mit diesem Namen gibt."
+		return l.Get(r.DriveMultipleFilesFoundError)
 	case IsSheetNotFoundError(cause):
-		return "Ich habe in Deinem Spreadsheet kein Tabellenblatt mit dem Namen Tagebuch gefunden. Bitte stelle sicher, dass dies existiert."
+		return l.Get(r.DriveSheetNotFoundError)
 	default:
 		interpreter.ErrorReporter.ReportError(errors.Wrap(e, "Could not interpret this error."))
-		return "Genauere Details kann ich aktuell leider nicht herausfinden. Ich habe den Entwickler bereits informiert, er wird sich um das Problem kümmern. Bitte versuche es später noch einmal."
+		return l.Get(r.DriveUnknownError)
 	}
 }
 
