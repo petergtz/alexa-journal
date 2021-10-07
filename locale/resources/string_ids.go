@@ -57,10 +57,11 @@ const (
 	Abort
 	ShortPause
 	LongPause
-	EndMarker
 	DriveCannotCreateFileError
 	DriveMultipleFilesFoundError
 	DriveSheetNotFoundError
 	DriveUnknownError
 	Journal
+
+	EndMarker
 )

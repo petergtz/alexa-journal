@@ -20,7 +20,21 @@ var _ = Describe("Localizer", func() {
 		i18nBundle = i18n.NewBundle(language.English)
 		i18nBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 		i18nBundle.MustParseMessageFileBytes(resources.DeDe, "active.de.toml")
+		i18nBundle.MustParseMessageFileBytes(resources.EnUs, "active.en.toml")
 	})
+
+	for _, lang := range []string{"de-DE", "en-US"} {
+		func(lang string) {
+			Context(lang, func() {
+				BeforeEach(func() { l = locale.NewLocalizer(i18nBundle, lang, true) })
+				It("Can load messages", func() {
+					for i := 0; i < int(resources.EndMarker); i++ {
+						l.Get(resources.StringID(i))
+					}
+				})
+			})
+		}(lang)
+	}
 
 	Context("Should be succinct", func() {
 		BeforeEach(func() { l = locale.NewLocalizer(i18nBundle, "de-DE", true) })

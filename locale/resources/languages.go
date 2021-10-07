@@ -208,11 +208,11 @@ var EnUs = []byte(tomlStringFrom(map[StringID]string{
 	ShortPause:                   ` `,
 	LongPause:                    `\n\n`,
 	InvalidDate:                  `That's an invalid date. Please provide a specific day for this date.`,
-	DriveCannotCreateFileError:   "I cannot create the file in your Google Drive. Please make sure that your Google Drive allows me to access it.",
-	DriveMultipleFilesFoundError: "I found more than one file with the name Journal in your Google Drive. Please make sure that there is only one file with this name.",
-	DriveSheetNotFoundError:      "I couldn't find a sheet with the name Journal in your spreadsheet. Please make sure this sheet exists.",
-	DriveUnknownError:            "There was an error. Unfortunately, I can't find out more details at the moment. I have already informed the engineer who will take care of the problem. Please try again later.",
-	Journal:                      "Journal",
+	DriveCannotCreateFileError:   `I cannot create the file in your Google Drive. Please make sure that your Google Drive allows me to access it.`,
+	DriveMultipleFilesFoundError: `I found more than one file with the name Journal in your Google Drive. Please make sure that there is only one file with this name.`,
+	DriveSheetNotFoundError:      `I couldn't find a sheet with the name Journal in your spreadsheet. Please make sure this sheet exists.`,
+	DriveUnknownError:            `There was an error. Unfortunately, I can't find out more details at the moment. I have already informed the engineer who will take care of the problem. Please try again later.`,
+	Journal:                      `Journal`,
 }))
 
 func tomlStringFrom(stringMap map[StringID]string) string {
