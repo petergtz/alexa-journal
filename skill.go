@@ -29,7 +29,7 @@ import (
 const responseTextLimit = 8000
 
 type JournalProvider interface {
-	Get(accessToken string) (j.Journal, error)
+	Get(accessToken string, spreadsheetName string) (j.Journal, error)
 }
 
 type Localizer interface {
@@ -134,7 +134,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 
 	case "LaunchRequest":
 		// cache warming:
-		go h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+		go h.journalProvider.Get(requestEnv.Session.User.AccessToken, l.Get(r.Journal))
 
 		return &alexa.ResponseEnvelope{Version: "1.0",
 			Response:          &alexa.Response{OutputSpeech: plainText(l.Get(r.YourJournalIsNowOpen))},
@@ -142,7 +142,7 @@ func (h *JournalSkill) ProcessRequest(requestEnv *alexa.RequestEnvelope) (respon
 		}
 
 	case "IntentRequest":
-		journal, e := h.journalProvider.Get(requestEnv.Session.User.AccessToken)
+		journal, e := h.journalProvider.Get(requestEnv.Session.User.AccessToken, l.Get(r.Journal))
 		if e != nil {
 			log.Errorw("Error while getting journal via journalProvider", "error", e)
 			return plainTextRespEnv(h.errorInterpreter.Interpret(e, l), requestEnv.Session.Attributes)

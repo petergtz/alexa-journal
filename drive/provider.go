@@ -23,11 +23,11 @@ func NewDriveSheetJournalProvider(log *zap.SugaredLogger) *DriveSheetJournalProv
 	}
 }
 
-func (jp *DriveSheetJournalProvider) Get(accessToken string) (j.Journal, error) {
+func (jp *DriveSheetJournalProvider) Get(accessToken string, spreadsheetName string) (j.Journal, error) {
 	tabData, exists := jp.cache.Get(accessToken)
 	if !exists {
 		var e error
-		tabData, e = NewSheetBasedTabularData(accessToken, "Tagebuch", "Tagebuch", jp.Log)
+		tabData, e = NewSheetBasedTabularData(accessToken, spreadsheetName, spreadsheetName, jp.Log)
 		if e != nil {
 			return j.Journal{}, e
 		}

@@ -94,6 +94,7 @@ var DeDe = []byte(tomlStringFrom(map[StringID]string{
 	DriveMultipleFilesFoundError: `Ich habe in Deinem Google Drive mehr als eine Datei mit dem Namen Tagebuch gefunden. Bitte Stelle sicher, dass es nur eine Datei mit diesem Namen gibt.`,
 	DriveSheetNotFoundError:      "Ich habe in Deinem Spreadsheet kein Tabellenblatt mit dem Namen Tagebuch gefunden. Bitte stelle sicher, dass dies existiert.",
 	DriveUnknownError:            "Es gab einen Fehler. Genauere Details kann ich aktuell leider nicht herausfinden. Ich habe den Entwickler bereits informiert, er wird sich um das Problem kümmern. Bitte versuche es später noch einmal.",
+	Journal:                      "Tagebuch",
 }))
 
 var weekdaysEn = map[time.Weekday]string{
@@ -210,7 +211,9 @@ var EnUs = []byte(tomlStringFrom(map[StringID]string{
 	DriveCannotCreateFileError:   "I cannot create the file in your Google Drive. Please make sure that your Google Drive allows me to access it.",
 	DriveMultipleFilesFoundError: "I found more than one file with the name Journal in your Google Drive. Please make sure that there is only one file with this name.",
 	DriveSheetNotFoundError:      "I couldn't find a sheet with the name Journal in your spreadsheet. Please make sure this sheet exists.",
-	DriveUnknownError:            "There was an error. Unfortunately, I can't find out more details at the moment. I have already informed the engineer who will take care of the problem. Please try again later."}))
+	DriveUnknownError:            "There was an error. Unfortunately, I can't find out more details at the moment. I have already informed the engineer who will take care of the problem. Please try again later.",
+	Journal:                      "Journal",
+}))
 
 func tomlStringFrom(stringMap map[StringID]string) string {
 	var lines []string

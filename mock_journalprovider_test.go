@@ -25,11 +25,11 @@ func NewMockJournalProvider(options ...pegomock.Option) *MockJournalProvider {
 func (mock *MockJournalProvider) SetFailHandler(fh pegomock.FailHandler) { mock.fail = fh }
 func (mock *MockJournalProvider) FailHandler() pegomock.FailHandler      { return mock.fail }
 
-func (mock *MockJournalProvider) Get(accessToken string) (journal.Journal, error) {
+func (mock *MockJournalProvider) Get(accessToken string, spreadsheetName string) (journal.Journal, error) {
 	if mock == nil {
 		panic("mock must not be nil. Use myMock := NewMockJournalProvider().")
 	}
-	params := []pegomock.Param{accessToken}
+	params := []pegomock.Param{accessToken, spreadsheetName}
 	result := pegomock.GetGenericMockFrom(mock).Invoke("Get", params, []reflect.Type{reflect.TypeOf((*journal.Journal)(nil)).Elem(), reflect.TypeOf((*error)(nil)).Elem()})
 	var ret0 journal.Journal
 	var ret1 error
@@ -81,8 +81,8 @@ type VerifierMockJournalProvider struct {
 	timeout                time.Duration
 }
 
-func (verifier *VerifierMockJournalProvider) Get(accessToken string) *MockJournalProvider_Get_OngoingVerification {
-	params := []pegomock.Param{accessToken}
+func (verifier *VerifierMockJournalProvider) Get(accessToken string, spreadsheetName string) *MockJournalProvider_Get_OngoingVerification {
+	params := []pegomock.Param{accessToken, spreadsheetName}
 	methodInvocations := pegomock.GetGenericMockFrom(verifier.mock).Verify(verifier.inOrderContext, verifier.invocationCountMatcher, "Get", params, verifier.timeout)
 	return &MockJournalProvider_Get_OngoingVerification{mock: verifier.mock, methodInvocations: methodInvocations}
 }
@@ -92,17 +92,21 @@ type MockJournalProvider_Get_OngoingVerification struct {
 	methodInvocations []pegomock.MethodInvocation
 }
 
-func (c *MockJournalProvider_Get_OngoingVerification) GetCapturedArguments() string {
-	accessToken := c.GetAllCapturedArguments()
-	return accessToken[len(accessToken)-1]
+func (c *MockJournalProvider_Get_OngoingVerification) GetCapturedArguments() (string, string) {
+	accessToken, spreadsheetName := c.GetAllCapturedArguments()
+	return accessToken[len(accessToken)-1], spreadsheetName[len(spreadsheetName)-1]
 }
 
-func (c *MockJournalProvider_Get_OngoingVerification) GetAllCapturedArguments() (_param0 []string) {
+func (c *MockJournalProvider_Get_OngoingVerification) GetAllCapturedArguments() (_param0 []string, _param1 []string) {
 	params := pegomock.GetGenericMockFrom(c.mock).GetInvocationParams(c.methodInvocations)
 	if len(params) > 0 {
 		_param0 = make([]string, len(c.methodInvocations))
 		for u, param := range params[0] {
 			_param0[u] = param.(string)
+		}
+		_param1 = make([]string, len(c.methodInvocations))
+		for u, param := range params[1] {
+			_param1[u] = param.(string)
 		}
 	}
 	return

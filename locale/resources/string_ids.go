@@ -62,4 +62,5 @@ const (
 	DriveMultipleFilesFoundError
 	DriveSheetNotFoundError
 	DriveUnknownError
+	Journal
 )
