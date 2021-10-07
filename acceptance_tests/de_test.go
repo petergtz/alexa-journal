@@ -1,4 +1,4 @@
-package journalskill_test
+package acceptance_test
 
 import (
 	"encoding/json"
@@ -21,7 +21,7 @@ type TestInvocation struct {
 	response  string
 }
 
-var _ = FDescribe("Skill Acceptance", func() {
+var _ = Describe("Skill Acceptance", func() {
 	today := date.Today().Format("2006-01-02")
 	todayWithWeekDay := resources.Weekdays["DeDe"][date.Today().Weekday()] + ", " + today
 
