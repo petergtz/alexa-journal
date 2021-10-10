@@ -46,6 +46,10 @@ func (l *Localizer) Weekday(weekday time.Weekday) string {
 	return resources.Weekdays[l.lang][weekday]
 }
 
+func (l *Localizer) Month(m int) string {
+	return resources.Months[l.lang][m]
+}
+
 func (l *Localizer) mustLocalize(lc *i18n.LocalizeConfig) string {
 	if l.shouldBeSuccinct {
 		suffixed := *lc

@@ -35,6 +35,7 @@ type JournalProvider interface {
 type Localizer interface {
 	Get(ids ...resources.StringID) string
 	GetTemplated(id resources.StringID, templateData interface{}) string
+	Month(m int) string
 }
 
 type ErrorInterpreter interface {
@@ -79,21 +80,6 @@ func NewJournalSkill(journalProvider JournalProvider,
 		configService:    configService,
 		i18nBundle:       i18nBundle,
 	}
-}
-
-var monthsReverse = map[int]string{
-	1:  "januar",
-	2:  "februar",
-	3:  "maerz",
-	4:  "april",
-	5:  "mai",
-	6:  "juni",
-	7:  "juli",
-	8:  "august",
-	9:  "september",
-	10: "oktober",
-	11: "november",
-	12: "dezember",
 }
 
 type SessionAttributes struct {
@@ -625,7 +611,7 @@ func listAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttri
 		return &alexa.ResponseEnvelope{Version: "1.0",
 			Response: &alexa.Response{
 				OutputSpeech: plainText(l.GetTemplated(r.NoEntriesInTimeRangeFound, map[string]interface{}{
-					"TimeRange": readableStringFrom(dateSlotValue)}) +
+					"TimeRange": readableStringFrom(dateSlotValue, l)}) +
 					l.Get(r.LongPause, r.WhatDoYouWantToDoNext)),
 			},
 			SessionAttributes: sessionAttributes,
@@ -639,7 +625,7 @@ func listAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttri
 	return &alexa.ResponseEnvelope{Version: "1.0",
 		Response: &alexa.Response{
 			OutputSpeech: plainText(l.GetTemplated(r.EntriesInTimeRange, map[string]interface{}{
-				"Date": readableStringFrom(dateSlotValue), "Entries": strings.Join(tuples, ". "),
+				"Date": readableStringFrom(dateSlotValue, l), "Entries": strings.Join(tuples, ". "),
 			}) + l.Get(r.LongPause, r.WhatDoYouWantToDoNext)),
 		},
 		SessionAttributes: sessionAttributes,
@@ -656,7 +642,7 @@ func readAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttri
 		return &alexa.ResponseEnvelope{Version: "1.0",
 			Response: &alexa.Response{
 				OutputSpeech: plainText(l.GetTemplated(r.NoEntriesInTimeRangeFound, map[string]interface{}{
-					"TimeRange": readableStringFrom(dateSlotValue)}) +
+					"TimeRange": readableStringFrom(dateSlotValue, l)}) +
 					l.Get(r.LongPause, r.WhatDoYouWantToDoNext)),
 			},
 			SessionAttributes: sessionAttributes,
@@ -669,14 +655,14 @@ func readAllEntriesInDate(journal *j.Journal, dateSlotValue string, sessionAttri
 	return &alexa.ResponseEnvelope{Version: "1.0",
 		Response: &alexa.Response{
 			OutputSpeech: plainText(l.GetTemplated(r.EntriesInTimeRange, map[string]interface{}{
-				"Date": readableStringFrom(dateSlotValue), "Entries": strings.Join(tuples, ". "),
+				"Date": readableStringFrom(dateSlotValue, l), "Entries": strings.Join(tuples, ". "),
 			}) + l.Get(r.LongPause, r.WhatDoYouWantToDoNext)),
 		},
 		SessionAttributes: sessionAttributes,
 	}
 }
 
-func readableStringFrom(dateLike string) string {
+func readableStringFrom(dateLike string, l Localizer) string {
 	r := regexp.MustCompile(`(\d{4})-(\d{2})(-XX)?`)
 	if matched := r.MatchString(dateLike); matched {
 		subMatches := r.FindStringSubmatch(dateLike)
@@ -686,7 +672,7 @@ func readableStringFrom(dateLike string) string {
 		if e != nil {
 			panic(e)
 		}
-		return monthsReverse[month] + " " + yearString
+		return l.Month(month) + " " + yearString
 	}
 	return dateLike
 }

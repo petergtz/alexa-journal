@@ -124,6 +124,43 @@ var Weekdays = map[string]map[time.Weekday]string{
 	"en-AU": weekdaysEn,
 }
 
+var monthsEn = map[int]string{
+	1:  "january",
+	2:  "february",
+	3:  "march",
+	4:  "april",
+	5:  "may",
+	6:  "june",
+	7:  "july",
+	8:  "august",
+	9:  "september",
+	10: "october",
+	11: "november",
+	12: "december",
+}
+
+var Months = map[string]map[int]string{
+	"de-DE": {
+		1:  "januar",
+		2:  "februar",
+		3:  "maerz",
+		4:  "april",
+		5:  "mai",
+		6:  "juni",
+		7:  "juli",
+		8:  "august",
+		9:  "september",
+		10: "oktober",
+		11: "november",
+		12: "dezember",
+	},
+	"en-US": monthsEn,
+	"en-GB": monthsEn,
+	"en-IN": monthsEn,
+	"en-CA": monthsEn,
+	"en-AU": monthsEn,
+}
+
 var EnUs = []byte(tomlStringFrom(map[StringID]string{
 	YourJournalIsNowOpen: `Okay, your journal is open. What do you want to do next?`,
 	NewEntryDraftExists:  `A draft for this date already exists. It is: {{.Draft}}. Do you want to continue with that?`,
