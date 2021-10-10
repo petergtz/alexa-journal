@@ -234,7 +234,7 @@ var EnUs = []byte(tomlStringFrom(map[StringID]string{
 	OkayWillBeVerbose:  `Okay. I'll be verbose. In case I should be brief again, say \"Alexa, be brief\".`,
 	InternalError:      `There was an internal error. I have already informed the engineer who will take care of the problem. Please try again later.`,
 
-	Help: `With this skill, you create journal entries and have them read for you. Say e.g. \"new entry\" . Or \"Read the entry from yesterday\". Or \"What was 20 years ago today?\". Oder \"What was in August 1994?\".`,
+	Help: `With this skill, you create journal entries and have them read for you. Say e.g. \"new entry\" . Or \"Read the entry from yesterday\". Or \"What was 20 years ago today?\". Or \"What was in August 1994?\".`,
 	// TODO: add to Help ` Oder \"Suche nach Geburtstag\". Wenn ich mich kurz fassen soll, sage \"Fasse Dich kurz\".`,
 	Done:                         "done",
 	Correct1:                     "correct",

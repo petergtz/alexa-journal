@@ -156,7 +156,7 @@ var _ = Describe("Skill Acceptance EN", func() {
 			launchInvocation,
 			{
 				utterance: "Help",
-				response:  `With this skill, you create journal entries and have them read for you. Say e.g. \"new entry\" . Or \"Read the entry from yesterday\". Or \"What was 20 years ago today?\". Oder \"What was in August 1994?\".`,
+				response:  `With this skill, you create journal entries and have them read for you. Say e.g. \"new entry\" . Or \"Read the entry from yesterday\". Or \"What was 20 years ago today?\". Or \"What was in August 1994?\".`,
 			},
 		})
 	})
