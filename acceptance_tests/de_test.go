@@ -11,7 +11,6 @@ import (
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/format"
 	"github.com/petergtz/alexa-journal/locale/resources"
 	"github.com/rickb777/date"
 )
@@ -21,7 +20,7 @@ type TestInvocation struct {
 	response  string
 }
 
-var _ = Describe("Skill Acceptance", func() {
+var _ = Describe("Skill Acceptance DE", func() {
 	today := date.Today().Format("2006-01-02")
 	todayWithWeekDay := resources.Weekdays["DeDe"][date.Today().Weekday()] + ", " + today
 
@@ -38,12 +37,8 @@ var _ = Describe("Skill Acceptance", func() {
 		response:  "Du kannst Deinen Eintrag für den " + today + " nun verfassen. Los geht's!",
 	}}
 
-	BeforeSuite(func() {
-		format.TruncatedDiff = false
-	})
-
 	It("can have a long conversation", func() {
-		expectDialogToSucceed([]TestInvocation{
+		expectDialogToSucceed("de-DE", []TestInvocation{
 			launchInvocation,
 			{
 				utterance: "Eintrag löschen",
@@ -128,7 +123,7 @@ var _ = Describe("Skill Acceptance", func() {
 	})
 
 	It("says there is nothing to repeat or correct when there's no new entry part yet", func() {
-		expectDialogToSucceed([]TestInvocation{
+		expectDialogToSucceed("de-DE", []TestInvocation{
 			launchInvocation,
 			newEntryForToday[0], newEntryForToday[1],
 			{
@@ -142,7 +137,7 @@ var _ = Describe("Skill Acceptance", func() {
 	})
 
 	It("says entry is empty when it is empty", func() {
-		expectDialogToSucceed([]TestInvocation{
+		expectDialogToSucceed("de-DE", []TestInvocation{
 			launchInvocation,
 			newEntryForToday[0], newEntryForToday[1],
 			{
@@ -153,7 +148,7 @@ var _ = Describe("Skill Acceptance", func() {
 	})
 
 	It("says it when it can't find entries in time range", func() {
-		expectDialogToSucceed([]TestInvocation{
+		expectDialogToSucceed("de-DE", []TestInvocation{
 			launchInvocation,
 			{
 				utterance: "Was war im mai neunzehn hundert fünf und zwanzig",
@@ -163,7 +158,7 @@ var _ = Describe("Skill Acceptance", func() {
 	})
 
 	It("says it when it can't can't find a search", func() {
-		expectDialogToSucceed([]TestInvocation{
+		expectDialogToSucceed("de-DE", []TestInvocation{
 			launchInvocation,
 			{
 				utterance: "Suche nach albert einstein relativitätstheorie",
@@ -173,7 +168,7 @@ var _ = Describe("Skill Acceptance", func() {
 	})
 
 	It("provides help", func() {
-		expectDialogToSucceed([]TestInvocation{
+		expectDialogToSucceed("de-DE", []TestInvocation{
 			launchInvocation,
 			{
 				utterance: "Hilfe",
@@ -183,8 +178,8 @@ var _ = Describe("Skill Acceptance", func() {
 	})
 })
 
-func expectDialogToSucceed(dialog []TestInvocation) {
-	actualDialog := run(utterancesFrom(dialog))
+func expectDialogToSucceed(locale string, dialog []TestInvocation) {
+	actualDialog := run(locale, utterancesFrom(dialog))
 	Expect(actualDialog).To(HaveLen(len(dialog)))
 	for i := range dialog {
 		Expect(actualDialog[i].utterance).To(Equal(dialog[i].utterance))
@@ -192,7 +187,7 @@ func expectDialogToSucceed(dialog []TestInvocation) {
 	}
 }
 
-func run(utterances []string) []TestInvocation {
+func run(locale string, utterances []string) []TestInvocation {
 	utterancesTempFile := writeUtterancesToTempFile(utterances)
 	defer os.Remove(utterancesTempFile.Name())
 
@@ -200,7 +195,7 @@ func run(utterances []string) []TestInvocation {
 	Expect(e).NotTo(HaveOccurred())
 	outputFile.Close()
 	defer os.Remove(outputFile.Name())
-	ask := exec.Command("ask", "dialog", "--stage", "development", "-r", utterancesTempFile.Name(), "--save-skill-io", outputFile.Name())
+	ask := exec.Command("ask", "dialog", "--debug", "--locale", locale, "--stage", "development", "-r", utterancesTempFile.Name(), "--save-skill-io", outputFile.Name())
 	ask.Stdout = os.Stdout
 	ask.Stderr = os.Stderr
 	Expect(ask.Run()).To(Succeed())
