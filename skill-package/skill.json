@@ -106,9 +106,13 @@
           "largeIconUri": "file://assets/images/en-GB_largeIconUri.png"
         }
       },
+      "automaticDistribution": {
+        "isActive": false
+      },
       "isAvailableWorldwide": true,
       "testingInstructions": "This skill requires a Google account to store data in a Google drive.",
       "category": "TO_DO_LISTS_AND_NOTES",
+      "distributionMode": "PUBLIC",
       "automaticClonedLocale": {
         "locales": [
           {
@@ -149,6 +153,21 @@
       "locales": {
         "de-DE": {
           "privacyPolicyUrl": "https://mein-tagebuch.net/de/#datenschutzerkl%C3%A4rung"
+        },
+        "en-US": {
+          "privacyPolicyUrl": "https://mein-tagebuch.net/en/#privacy-policy"
+        },
+        "en-CA": {
+          "privacyPolicyUrl": "https://mein-tagebuch.net/en/#privacy-policy"
+        },
+        "en-IN": {
+          "privacyPolicyUrl": "https://mein-tagebuch.net/en/#privacy-policy"
+        },
+        "en-AU": {
+          "privacyPolicyUrl": "https://mein-tagebuch.net/en/#privacy-policy"
+        },
+        "en-GB": {
+          "privacyPolicyUrl": "https://mein-tagebuch.net/en/#privacy-policy"
         }
       },
       "containsAds": false,

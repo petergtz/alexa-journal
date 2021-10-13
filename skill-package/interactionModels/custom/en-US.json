@@ -241,7 +241,8 @@
                 "elicitation": "Elicit.Slot.1231923745789.768992757196"
               }
             }
-          ]
+          ],
+          "delegationStrategy": "ALWAYS"
         },
         {
           "name": "ReadExistingEntryRelativeDateIntent",
@@ -415,7 +416,7 @@
         "variations": [
           {
             "type": "PlainText",
-            "value": "From what date should I read an entry?"
+            "value": "From what date should I reed an entry?"
           }
         ]
       },
@@ -457,5 +458,5 @@
       }
     ]
   },
-  "version": "3"
+  "version": "12"
 }

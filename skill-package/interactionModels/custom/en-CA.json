@@ -37,7 +37,8 @@
             "New entry",
             "New log entry",
             "Create a new log entry",
-            "Create a new journal entry"
+            "Create a new journal entry",
+            "Draft new entry"
           ]
         },
         {
@@ -150,7 +151,9 @@
             "Keep it short",
             "Be brief",
             "Please keep it short",
-            "Please be brief"
+            "Please be brief",
+            "Be succinct",
+            "Please be succinct"
           ]
         },
         {
@@ -238,7 +241,8 @@
                 "elicitation": "Elicit.Slot.1231923745789.768992757196"
               }
             }
-          ]
+          ],
+          "delegationStrategy": "ALWAYS"
         },
         {
           "name": "ReadExistingEntryRelativeDateIntent",
@@ -412,7 +416,7 @@
         "variations": [
           {
             "type": "PlainText",
-            "value": "From what date should I read an entry?"
+            "value": "From what date should I reed an entry?"
           }
         ]
       },
@@ -421,7 +425,7 @@
         "variations": [
           {
             "type": "PlainText",
-            "value": "What should I searech for?"
+            "value": "What should I search for?"
           }
         ]
       },
@@ -454,5 +458,5 @@
       }
     ]
   },
-  "version": "3"
+  "version": "19"
 }
