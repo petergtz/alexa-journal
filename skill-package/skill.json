@@ -23,7 +23,7 @@
         "en-US": {
           "summary": "Maintain your own Journal with Alexa.",
           "examplePhrases": [
-            "Alexa, open my journal and create a new entry.",
+            "Alexa, create a new entry in my journal.",
             "Alexa, open my journal.",
             "Read the entry from yesterday"
           ],
@@ -40,7 +40,7 @@
         "en-CA": {
           "summary": "Maintain your own Journal with Alexa.",
           "examplePhrases": [
-            "Alexa, open my journal und create a new entry.",
+            "Alexa, create a new entry in my journal.",
             "Alexa, open my journal.",
             "Read the entry from yesterday"
           ],
@@ -57,7 +57,7 @@
         "en-IN": {
           "summary": "Maintain your own Journal with Alexa.",
           "examplePhrases": [
-            "Alexa, open my journal und create a new entry.",
+            "Alexa, create a new entry in my journal.",
             "Alexa, open my journal.",
             "Read the entry from yesterday"
           ],
@@ -74,7 +74,7 @@
         "en-AU": {
           "summary": "Maintain your own Journal with Alexa.",
           "examplePhrases": [
-            "Alexa, open my journal und create a new entry.",
+            "Alexa, create a new entry in my journal.",
             "Alexa, open my journal.",
             "Read the entry from yesterday"
           ],
@@ -91,7 +91,7 @@
         "en-GB": {
           "summary": "Maintain your own Journal with Alexa.",
           "examplePhrases": [
-            "Alexa, open my journal und create a new entry.",
+            "Alexa, create a new entry in my journal.",
             "Alexa, open my journal.",
             "Read the entry from yesterday"
           ],
