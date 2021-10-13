@@ -23,7 +23,7 @@
         "en-US": {
           "summary": "Maintain your own Journal with Alexa.",
           "examplePhrases": [
-            "Alexa, open my journal und create a new entry.",
+            "Alexa, open my journal and create a new entry.",
             "Alexa, open my journal.",
             "Read the entry from yesterday"
           ],
