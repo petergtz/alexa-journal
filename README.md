@@ -2,7 +2,7 @@
 
  <img src="logo/logo.png" width="200">
 
-This is the source code for my [Alexa skill that allows you to maintain a journal](https://www.amazon.de/Peter-G%C3%B6tz-Wikipedia/dp/B07TSPVXHM) on:
+This is the source code for my Alexa skill that allows you to maintain a journal on:
 
 - [amazon.de](https://www.amazon.de/Peter-G%C3%B6tz-Wikipedia/dp/B07TSPVXHM)
 - [amazon.com](https://www.amazon.com/Peter-G%C3%B6tz-Wikipedia/dp/B07TSPVXHM)
